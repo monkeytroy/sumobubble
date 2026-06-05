@@ -108,7 +108,7 @@
 
 <script lang="ts" setup>
 
-  import { ref, defineProps, provide, computed, watchEffect } from 'vue';
+  import { ref, provide, computed, watchEffect } from 'vue';
   import { InformationCircleIcon, QuestionMarkCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
   import { getTextColorByBrightness } from '@/services/theme';
 

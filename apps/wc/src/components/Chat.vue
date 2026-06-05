@@ -62,7 +62,7 @@
 <script lang="ts" setup>
 
   import { IChat, sendChat } from '@/services/api';
-  import { Ref, defineProps, nextTick, ref } from 'vue';
+  import { Ref, nextTick, ref } from 'vue';
   
   const props = defineProps(['config']);
   const chatRef = ref<HTMLInputElement | null>(null);

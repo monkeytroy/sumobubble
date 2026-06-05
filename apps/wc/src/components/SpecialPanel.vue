@@ -16,7 +16,7 @@
 
 <script lang="ts" setup>
   import { InformationCircleIcon } from '@heroicons/vue/24/outline';
-  import { defineProps, computed } from 'vue';
+  import { computed } from 'vue';
   import Markdown from '@/components/Markdown.vue';
   
   const props = defineProps(['config', 'scrollContainer']);

@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 
-  import { defineProps, inject, nextTick, Ref, ref, watch } from 'vue';
+  import { inject, nextTick, Ref, ref, watch } from 'vue';
   import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
   import { scrollContent } from '@/services/scroll';
   import { MinusIcon, PlusIcon } from '@heroicons/vue/20/solid';

@@ -40,3 +40,6 @@ pnpm-debug.log*
 
 # Vercel
 .vercel
+
+# Turborepo (cache + per-user TUI state)
+.turbo/

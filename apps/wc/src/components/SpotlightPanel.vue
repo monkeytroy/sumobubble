@@ -17,7 +17,7 @@
 
 <script lang="ts"  setup>
 
-  import { computed, defineProps } from 'vue';
+  import { computed } from 'vue';
 
   const props = defineProps(['config']);
   const spotlight = computed(() => props?.config?.sections.spotlight);
