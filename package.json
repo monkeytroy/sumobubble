@@ -1,0 +1,13 @@
+{
+  "name": "sumobubble",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev:service": "pnpm --filter sumobubble-service dev",
+    "dev:wc": "pnpm --filter sumobubble-app dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  }
+}
