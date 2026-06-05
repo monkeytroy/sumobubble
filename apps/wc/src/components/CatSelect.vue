@@ -17,7 +17,7 @@
         leave-to-class="opacity-0">
         
         <ListboxOptions class="absolute bottom-full z-10 mt-1 max-h-60 w-full overflow-auto rounded-md 
-          bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
           <ListboxOption as="template" v-for="(cat, index) in categories" 
             :key="index" :value="cat?.title" v-slot="{ active, selected }">
             <li :class="[active ? 'bg-indigo-600 text-white' : 'text-gray-900', 

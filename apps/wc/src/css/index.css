@@ -1,17 +1,29 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+@theme {
+  /* Skin tokens driven by CSS vars that App.ce.vue sets at runtime
+     based on the customer config (cssRootString). */
+  --color-skin-primary: rgb(var(--color-primary));
+  --color-skin-a11y: rgb(var(--color-a11y));
+
+  /* Used by AppButton.vue lower nav labels. */
+  --text-2xs: 0.7rem;
+
+  /* z-999 used by the floating bubble container. */
+  --z-999: 999;
+}
 
 @layer base {
   a {
-    @apply text-blue-400 underline
+    @apply text-blue-400 underline;
   }
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(#eee) var(#ccc);
+  scrollbar-color: #ccc #eee;
 }
 
 /* Chrome, Edge, and Safari */
