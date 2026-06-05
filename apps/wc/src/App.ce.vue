@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 
-  import { ref, defineProps } from 'vue';
+  import { ref } from 'vue';
   import AppButton from '@/components/AppButton.vue'
   import { getSiteConfig } from '@/services/api';
   import { getRGBColor, getAccessibleColor } from '@/services/theme';
