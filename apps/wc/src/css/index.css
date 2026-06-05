@@ -11,7 +11,7 @@
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(#eee) var(#ccc);
+  scrollbar-color: #ccc #eee;
 }
 
 /* Chrome, Edge, and Safari */

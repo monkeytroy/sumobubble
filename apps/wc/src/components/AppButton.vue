@@ -90,7 +90,7 @@
           v-if="showMenu">
           <div class="flex flex-wrap justify-evenly gap-2 uppercase p-2">
 
-            <LowerNavButton @click="page=PAGE.INFO" text="About Us">
+            <LowerNavButton @click="page=PAGE.INFO" text="About">
               <InformationCircleIcon class="h-8 w-auto"/>
             </LowerNavButton>            
 

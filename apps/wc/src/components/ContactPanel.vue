@@ -106,7 +106,7 @@
 
 <script lang="ts" setup>
 
-  import { ref, defineProps, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
   import { sendContact } from '@/services/api';
   import { getTextColorByBrightness } from '@/services/theme';
   import { CAPTCHA_SITE_KEY } from '@/config';
@@ -140,7 +140,7 @@
     await setupRecaptcha();
   });
 
-  const submitClick = async (e: Event) => {
+  const submitClick = async () => {
 
     const token = await window.grecaptcha.execute(CAPTCHA_SITE_KEY, { action: 'submit' });
     

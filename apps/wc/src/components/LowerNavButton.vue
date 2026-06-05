@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
 
-  const props = defineProps(['icon', 'text']);
+  defineProps(['icon', 'text']);
   const emit = defineEmits(['click']);
 
 </script>
