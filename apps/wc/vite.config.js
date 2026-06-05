@@ -24,6 +24,13 @@ export default defineConfig({
       fileName: 'sumobubble'
     }
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern'
+      }
+    }
+  },
   define: {
     'process.env': process.env
   },
