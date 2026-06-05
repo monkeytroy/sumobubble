@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview:bundle": "vite build --mode development && http-server ./dist -p 3001 --cors"
+    "preview:bundle": "vite build --mode development && http-server ./dist -p 3001 --cors",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.12",
@@ -23,10 +29,19 @@
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
     "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/eslint-config-typescript": "^14.8.0",
+    "@vue/test-utils": "^2.4.11",
     "concurrently": "^10.0.3",
+    "eslint": "^9.39.4",
+    "eslint-plugin-vue": "^10.9.2",
     "http-server": "^14.1.1",
     "postcss": "^8.4.21",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "sass": "^1.100.0",
-    "tailwindcss": "^3.3.2"
+    "tailwindcss": "^3.3.2",
+    "typescript": "5.6.2",
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^2.1.9"
   }
 }
