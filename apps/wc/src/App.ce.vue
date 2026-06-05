@@ -11,7 +11,6 @@
   import AppButton from '@/components/AppButton.vue'
   import { getSiteConfig } from '@/services/api';
   import { getRGBColor, getAccessibleColor } from '@/services/theme';
-  import { metricsInit, track } from '@/services/metrics';
 
   const props = defineProps({
     site: String,
@@ -40,12 +39,6 @@
   const updateConfig = async (site: ISite) => {
     config.value = site;
 
-    const customerId = config.value.customerId;
-    await metricsInit(customerId, config.value?.isDev || false);
-
-    track('Config Loaded');
-
-    // event log config loaded.
     const primaryColorConfig = config.value?.theme?.primary || '#aaaaff';
     if (primaryColorConfig) { 
       const primaryColor = getRGBColor(primaryColorConfig, "primary");

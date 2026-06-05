@@ -119,10 +119,8 @@
   import InfoRequestPanel from '@/components/InfoRequestPanel.vue';
   import SpotlightPanel from '@/components/SpotlightPanel.vue';
   import Chat from '@/components/Chat.vue';
-  import LowerNavButton from '@/components/LowerNavButton.vue';  
+  import LowerNavButton from '@/components/LowerNavButton.vue';
 
-  import { track } from '@/services/metrics';
-  
   const enum PAGE {
     INFO = 'info',
     CHAT = 'chat'
@@ -166,10 +164,6 @@
   provide('panelRefs', panelRefs);
 
   const onClick = () => {
-    
-    // event track
-    track('SumoBubble Opened');
-
     open.value = !open.value;
   }
 

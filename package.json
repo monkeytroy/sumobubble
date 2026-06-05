@@ -4,10 +4,17 @@
   "private": true,
   "packageManager": "pnpm@11.1.2",
   "scripts": {
+    "dev": "turbo run dev",
     "dev:service": "pnpm --filter sumobubble-service dev",
     "dev:wc": "pnpm --filter sumobubble-app dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "dev:infra": "pnpm --filter @sumobubble/infra dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "infra:stop": "pnpm --filter @sumobubble/infra stop",
+    "infra:reset": "pnpm --filter @sumobubble/infra reset"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8"
   }
 }

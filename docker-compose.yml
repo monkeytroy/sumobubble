@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo_data:/data/db
+    command: mongod --auth --quiet --logpath /dev/null
+    healthcheck:
+      test: mongosh --quiet --eval "db.adminCommand('ping')" -u admin -p password --authenticationDatabase admin
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    #connection url is mongodb://admin:password@localhost:27017/sumobubble-dev?authSource=admin&retryWrites=true&w=majority&appName=sumobubble-dev&maxPoolSize=1&minPoolSize=1&maxIdleTimeMS=60000
+
+volumes:
+  mongo_data:
+

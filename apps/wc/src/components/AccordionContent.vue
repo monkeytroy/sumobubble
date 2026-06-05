@@ -21,7 +21,6 @@
 
   import { defineProps, inject, nextTick, Ref, ref, watch } from 'vue';
   import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
-  import { track } from '@/services/metrics';
   import { scrollContent } from '@/services/scroll';
   import { MinusIcon, PlusIcon } from '@heroicons/vue/20/solid';
 
@@ -45,10 +44,6 @@
   const onClick = () => {
   
     if (!isOpen.value) {
-
-      track('Panel Open', {
-        appPanel: props.title
-      });
 
       // set the opened section.
       // will trigger the watch above and close other sections.
