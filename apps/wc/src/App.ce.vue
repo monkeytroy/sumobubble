@@ -30,7 +30,7 @@
       }
     }
 
-    const res = await getSiteConfig(props.site, props.preview);
+    const res = await getSiteConfig(props.site || "", props.preview);
     if (res) {
       updateConfig(res);      
     }

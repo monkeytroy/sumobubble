@@ -13,7 +13,7 @@ let config: any = {};
  * @param {} customer 
  * @returns 
  */
-export const getSiteConfig = async (siteId: string, preview: string) => {
+export const getSiteConfig = async (siteId: string, preview: boolean) => {
 
   try {
 
