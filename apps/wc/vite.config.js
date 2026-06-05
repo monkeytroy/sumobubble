@@ -16,9 +16,13 @@ export default defineConfig({
     }),
     cssInjectedByJsPlugin({topExecutionPriority: false}),
   ],
+  server: {
+    port: 3001,
+    strictPort: true,
+  },
   build: {
     lib: {
-      formats: ['es', 'cjs'],
+      formats: ['es'],
       entry: './src/main.js',
       name: 'sumobubble-wc',
       fileName: 'sumobubble'
@@ -30,9 +34,6 @@ export default defineConfig({
         api: 'modern'
       }
     }
-  },
-  define: {
-    'process.env': process.env
   },
   resolve: {
     alias: {

@@ -109,8 +109,8 @@
   import { ref, defineProps, computed, onMounted } from 'vue';
   import { sendContact } from '@/services/api';
   import { getTextColorByBrightness } from '@/services/theme';
+  import { CAPTCHA_SITE_KEY } from '@/config';
 
-  const CAPTCHA_KEY = '6LdHNPIkAAAAAHi7HsTDq-RFRKGFMwt6ZOWSFEGn';
   const props = defineProps(['config']);
   const content = computed(() => props.config?.sections?.contact?.content || '');
 
@@ -130,7 +130,7 @@
       // todo check if recaptchaV2 already exists...
       if (!document.querySelector('#recaptchaV3')) {
         const script = document.createElement('script');
-        script.src = 'https://www.google.com/recaptcha/api.js?render=' + CAPTCHA_KEY;
+        script.src = 'https://www.google.com/recaptcha/api.js?render=' + CAPTCHA_SITE_KEY;
         script.id = 'recaptchaV3';
         document.head.appendChild(script);
       }
@@ -142,7 +142,7 @@
 
   const submitClick = async (e: Event) => {
 
-    const token = await window.grecaptcha.execute(CAPTCHA_KEY, { action: 'submit' });  
+    const token = await window.grecaptcha.execute(CAPTCHA_SITE_KEY, { action: 'submit' });
     
     submitSuccess.value = false;
     submitFail.value = false;

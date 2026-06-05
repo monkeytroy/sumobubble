@@ -1,3 +1,4 @@
+import { SITES_BASE_URL } from '@/config';
 
 export interface IChat {
   user: string;
@@ -16,7 +17,7 @@ export const getSiteConfig = async (siteId: string, preview: string) => {
 
   try {
 
-    let siteUrl = `https://sumobubble-space.nyc3.digitaloceanspaces.com/sites/${siteId}.json`;
+    let siteUrl = `${SITES_BASE_URL}/${siteId}.json`;
     if (preview) {
       siteUrl = `/api/site/${siteId}`;
     }
