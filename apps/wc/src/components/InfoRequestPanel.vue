@@ -17,7 +17,7 @@
                 text-gray-900 shadow-sm placeholder:text-gray-400 sm:text-sm sm:leading-6
                 rounded-md border border-slate-300
                 focus:outline-none focus:border-skin-primary
-                focus:ring-1 focus:ring-skin-primary/50
+                focus:ring-1 focus:ring-skin-primary focus:ring-opacity-50
                 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none
                 invalid:text-red-600" />
           </div>
@@ -31,7 +31,7 @@
                 text-gray-900 shadow-sm placeholder:text-gray-400 sm:text-sm sm:leading-6
                 rounded-md border border-slate-300
                 focus:outline-none focus:border-skin-primary
-                focus:ring-1 focus:ring-skin-primary/50
+                focus:ring-1 focus:ring-skin-primary focus:ring-opacity-50
                 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none
                 invalid:text-red-600" />
           </div>
@@ -45,7 +45,7 @@
                 text-gray-900 shadow-sm placeholder:text-gray-400 sm:text-sm sm:leading-6
                 rounded-md border border-slate-300
                 focus:outline-none focus:border-skin-primary
-                focus:ring-1 focus:ring-skin-primary/50
+                focus:ring-1 focus:ring-skin-primary focus:ring-opacity-50
                 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none
                 invalid:text-red-600"/>
           </div>
@@ -71,7 +71,7 @@
 
         <button type="submit" 
           class="rounded-md grow mr-4
-          bg-skin-primary opacity-90 hover:bg-skin-primary/80 px-3.5 py-2.5
+          bg-skin-primary opacity-90 hover:bg-opacity-80 px-3.5 py-2.5 
           text-center text-sm font-semibold shadow-sm
           focus-visible:outline focus-visible:outline-2 
           focus-visible:outline-offset-2 
@@ -93,7 +93,7 @@
 
 <script lang="ts" setup>
 
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, defineProps, computed, onMounted } from 'vue';
   import { sendContact } from '@/services/api';
   import CatSelect from './CatSelect.vue';
   import { getTextColorByBrightness } from '@/services/theme';

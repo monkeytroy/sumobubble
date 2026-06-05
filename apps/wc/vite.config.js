@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import tailwindcss from '@tailwindcss/vite'
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 import path from 'path';
 
@@ -15,7 +14,6 @@ export default defineConfig({
         }
       }
     }),
-    tailwindcss(),
     cssInjectedByJsPlugin({topExecutionPriority: false}),
   ],
   server: {
