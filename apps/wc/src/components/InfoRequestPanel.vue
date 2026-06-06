@@ -93,13 +93,14 @@
 
 <script lang="ts" setup>
 
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed } from 'vue';
   import { sendContact } from '@/services/api';
   import CatSelect from './CatSelect.vue';
   import { getTextColorByBrightness } from '@/services/theme';
-  import { CAPTCHA_SITE_KEY } from '@/config';
+  import { useRecaptcha } from '@/composables/useRecaptcha';
 
   const props = defineProps<{ config: ISite }>();
+  const { executeRecaptcha } = useRecaptcha();
   const section = props.config?.sections?.inforequest;
   const content = computed(() => section?.content || '');
 
@@ -128,26 +129,8 @@
     selectedCategory.value = cat;
   }
 
-  /**
-   * Load the recaptcha script and insert it in doc
-   */
-  const setupRecaptcha = async () => {
-      // todo check if recaptchaV2 already exists...
-      if (!document.querySelector('#recaptchaV3')) {
-        const script = document.createElement('script');
-        script.src = 'https://www.google.com/recaptcha/api.js?render=' + CAPTCHA_SITE_KEY;
-        script.id = 'recaptchaV3';
-        document.head.appendChild(script);
-      }
-  }
-
-  onMounted(async () => {
-    await setupRecaptcha();
-  });
-
   const submitClick = async () => {
-
-    const token = await window.grecaptcha.execute(CAPTCHA_SITE_KEY, { action: 'submit' });
+    const token = await executeRecaptcha('submit');
 
     submitSuccess.value = false;
     submitFail.value = false;
