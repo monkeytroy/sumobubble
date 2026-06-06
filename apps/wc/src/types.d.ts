@@ -38,8 +38,6 @@ interface ISite {
   },
   chatbot: {
     enabled: boolean;
-    chatsite?: string;                // the url for the site the chat will be baesd off
-    chatbaseId?: string;              // the chatbase bot id
   }
   sections: ISiteSections
 }
