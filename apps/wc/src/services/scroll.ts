@@ -1,10 +1,14 @@
-export const scrollContent = (panelsRefItem: string, panelsRefs: any) => {
-  const itemHeight = panelsRefs[panelsRefItem].value.offsetHeight;
-  const itemOffsetTop = panelsRefs[panelsRefItem].value.offsetTop;
-  const scrollContentOffsetHeight = panelsRefs.scrollContainer.value.offsetHeight;
-  const scrollContentOffsetTop = panelsRefs.scrollContainer.value.offsetTop;
+import type { Ref } from 'vue';
 
-  const scrollTop = 15 + (itemOffsetTop + itemHeight) - (scrollContentOffsetHeight + scrollContentOffsetTop);
+export type PanelRefs = Record<string, Ref<HTMLElement | null>>;
 
-  panelsRefs.scrollContainer.value.scrollTop = scrollTop;
+export const scrollContent = (panelsRefItem: string, panelsRefs: PanelRefs) => {
+  const item = panelsRefs[panelsRefItem]?.value;
+  const container = panelsRefs.scrollContainer?.value;
+  if (!item || !container) return;
+
+  const scrollTop =
+    15 + (item.offsetTop + item.offsetHeight) - (container.offsetHeight + container.offsetTop);
+
+  container.scrollTop = scrollTop;
 };

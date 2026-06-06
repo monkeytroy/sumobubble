@@ -4,8 +4,18 @@ declare module "markdown-it-sup";
 declare module "vue-html-secure";
 
 interface Window {
-  grecaptcha: any;
-  onPreviewUpdate: any;
+  grecaptcha: {
+    execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  };
+  onPreviewUpdate?: (val: ISite) => void;
+}
+
+interface IContactInfo {
+  category: string | null;
+  email?: string;
+  name?: string;
+  phone?: string;
+  message?: string;
 }
 
 interface ISite {

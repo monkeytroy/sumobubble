@@ -5,7 +5,9 @@ export interface IChat {
   text: string;
 }
 
-let config: any = {};
+// Module-level cache of the loaded site config so sendContact can read
+// the Mongo _id. Marked for removal — see TODO in sendContact.
+let config: Partial<ISite> = {};
 
 /**
  * Read the site config by getting the script path as the service base url.
@@ -24,8 +26,10 @@ export const getSiteConfig = async (siteId: string, preview: boolean) => {
 
     const res = await fetch(siteUrl);
     if (res.status === 200) {
-      config = await res.json();
-      return preview ? config?.data : config;
+      const json = await res.json();
+      const site: ISite = preview ? json?.data : json;
+      config = site;
+      return site;
     }
   } catch {
     //
@@ -40,8 +44,9 @@ export const getSiteConfig = async (siteId: string, preview: boolean) => {
  * @returns 
  */
 export const sendContact = async (
-  {section, token, contactInfo}:
-  {section: string, token: string, contactInfo: any} ) => {
+  { section, token, contactInfo }:
+  { section: string; token: string; contactInfo: IContactInfo }
+) => {
   
   if (token) {
 
@@ -66,16 +71,17 @@ export const sendContact = async (
   return false;
 }
 
-const getServiceBase = () => {
+const getServiceBase = (): string => {
   // calc serviceBase. Needed because the api calls are to the same
   // url the app web component was loaded from.
-  if ((import.meta as any).env?.MODE === 'development') {
+  if (import.meta.env.MODE === 'development') {
     return 'http://localhost:3000/';
-  } else {
-    const src = (document.querySelector('#sumobubble-app-scriptastic') as any)?.src;
-    return src.match(/http[s]?:\/\/.+?\//gm)[0];  
   }
-}
+  const scriptTag = document.querySelector<HTMLScriptElement>('#sumobubble-app-scriptastic');
+  const src = scriptTag?.src ?? '';
+  const match = src.match(/http[s]?:\/\/.+?\//);
+  return match ? match[0] : '/';
+};
 
 export const sendChat = async (siteId: string, query: string) => {
   try {
