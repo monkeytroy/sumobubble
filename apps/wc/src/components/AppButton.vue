@@ -171,7 +171,7 @@
   watchEffect(() => {
     info.value = !!props.config?.summary.enabled;
     chat.value = !!props.config?.chatbot.enabled;
-    page.value = (info.value && chat.value) ? PAGE.INFO : (info.value ? PAGE.INFO : PAGE.CHAT);
+    page.value = info.value ? PAGE.INFO : PAGE.CHAT;
   });
 
   const showMenu = computed(() => {
