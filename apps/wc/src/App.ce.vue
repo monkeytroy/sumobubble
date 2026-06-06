@@ -7,7 +7,7 @@
 
 <script lang="ts" setup>
 
-  import { ref } from 'vue';
+  import { ref, onBeforeUnmount } from 'vue';
   import AppButton from '@/components/AppButton.vue'
   import { getSiteConfig } from '@/services/api';
   import { getRGBColor, getAccessibleColor } from '@/services/theme';
@@ -49,7 +49,15 @@
   }
 
   init();
-  
+
+  onBeforeUnmount(() => {
+    // Don't leak the global preview-update hook (and avoid clobbering
+    // sibling bubbles that might mount on the same page).
+    if (props.preview) {
+      delete window.onPreviewUpdate;
+    }
+  });
+
 </script>
 
 <style>

@@ -135,14 +135,14 @@
     submitSuccess.value = false;
     submitFail.value = false;
 
-    const success = await sendContact({
+    const success = await sendContact(props.config?._id ?? '', {
       section: 'inforequest',
       token,
       contactInfo: {
         category: selectedCategory.value,
         email: emailInput.value,
-        name: nameInput.value,      
-        message: messageInput.value,
+        name: nameInput.value,
+        message: messageInput.value
       }
     });
 

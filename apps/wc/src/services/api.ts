@@ -5,75 +5,56 @@ export interface IChat {
   text: string;
 }
 
-// Module-level cache of the loaded site config so sendContact can read
-// the Mongo _id. Marked for removal — see TODO in sendContact.
-let config: Partial<ISite> = {};
-
 /**
- * Read the site config by getting the script path as the service base url.
- * Use this for api calls inc getting the cust config.
- * @param {} customer 
- * @returns 
+ * Fetch the published site config. In preview mode hits the local Next API
+ * (which wraps the doc in { data }); otherwise pulls the published JSON from
+ * the CDN. Returns null on any failure (network, non-200, parse, missing
+ * preview wrapper).
  */
-export const getSiteConfig = async (siteId: string, preview: boolean) => {
-
+export const getSiteConfig = async (siteId: string, preview: boolean): Promise<ISite | null> => {
   try {
-
-    let siteUrl = `${SITES_BASE_URL}/${siteId}.json`;
-    if (preview) {
-      siteUrl = `/api/site/${siteId}`;
-    }
+    const siteUrl = preview
+      ? `/api/site/${siteId}`
+      : `${SITES_BASE_URL}/${siteId}.json`;
 
     const res = await fetch(siteUrl);
     if (res.status === 200) {
       const json = await res.json();
-      const site: ISite = preview ? json?.data : json;
-      config = site;
-      return site;
+      return preview ? json?.data : json;
     }
   } catch {
     //
   }
   console.error('sumobubble: failed to load site config');
   return null;
-}
+};
 
 /**
- * Send contact data
- * @param {*} param0 
- * @returns 
+ * Submit a contact / info-request form. Caller passes the site id so this
+ * function has no hidden dependency on prior calls.
  */
 export const sendContact = async (
+  siteId: string,
   { section, token, contactInfo }:
   { section: string; token: string; contactInfo: IContactInfo }
-) => {
-  
-  if (token) {
-
-    const formbody = {
-      section, 
-      token,
-      ...contactInfo
-    }
-  
-    // call contact with token
-    const res = await fetch(`${getServiceBase()}api/contact/${config._id}`, {
-      method: 'POST',
-      body: JSON.stringify(formbody)
-    });
-
-    return (res.status == 200);
-
-  } else {
+): Promise<boolean> => {
+  if (!token) {
     console.warn('sumobubble: captcha validation failed');
+    return false;
   }
 
-  return false;
-}
+  const res = await fetch(`${getServiceBase()}api/contact/${siteId}`, {
+    method: 'POST',
+    body: JSON.stringify({ section, token, ...contactInfo })
+  });
+
+  return res.status === 200;
+};
 
 const getServiceBase = (): string => {
-  // calc serviceBase. Needed because the api calls are to the same
-  // url the app web component was loaded from.
+  // The wc's API base is whatever origin the bundle was loaded from
+  // (the host page's <script src=...> attribute). In dev we hit the
+  // local Next service directly.
   if (import.meta.env.MODE === 'development') {
     return 'http://localhost:3000/';
   }
@@ -97,4 +78,4 @@ export const sendChat = async (siteId: string, query: string) => {
     //
   }
   return null;
-}
+};

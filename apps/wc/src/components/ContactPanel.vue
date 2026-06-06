@@ -131,13 +131,13 @@
     submitSuccess.value = false;
     submitFail.value = false;
 
-    const success = await sendContact({
+    const success = await sendContact(props.config?._id ?? '', {
       section: 'contact',
       token,
       contactInfo: {
         category: null,
         email: emailInput.value,
-        name: nameInput.value,  
+        name: nameInput.value,
         phone: phoneInput.value,
         message: messageInput.value
       }
