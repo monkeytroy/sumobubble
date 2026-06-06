@@ -36,7 +36,7 @@
           bg-skin-primary brightness-105 h-full
           text-2xl font-bold select-none">
           <div class="flex justify-between items-center uppercase p-4 "
-            :class="getTextColorByBrightness(config?.customer?.theme.primary)">
+            :class="getTextColorByBrightness(config?.theme?.primary)">
             {{ config?.title || 'Hello there'}}
             <XCircleIcon class="w-6 h-6 cursor-pointer hover:opacity-70" 
               @click="close">

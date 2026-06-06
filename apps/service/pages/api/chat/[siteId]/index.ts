@@ -75,7 +75,7 @@ const post = async (req: NextApiRequest, res: NextApiResponse<IApiRes>) => {
 
     // do AI req
     const genAI = new GoogleGenerativeAI(aiApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // todo configure
     const prompt = `
@@ -118,6 +118,7 @@ const post = async (req: NextApiRequest, res: NextApiResponse<IApiRes>) => {
       res.status(500).send({ success: false, message: msg });
     }
   } catch (err) {
-    res.status(405).send({ success: false, message: `Error ${(<Error>err)?.message}` });
+    log(`api/chat/${siteId} error: ${(<Error>err)?.message}`);
+    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
   }
 };
