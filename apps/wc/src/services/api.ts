@@ -30,7 +30,7 @@ export const getSiteConfig = async (siteId: string, preview: boolean) => {
   } catch {
     //
   }
-  console.error('Could not load the site.  Did you publish it??');
+  console.error('sumobubble: failed to load site config');
   return null;
 }
 
@@ -60,7 +60,7 @@ export const sendContact = async (
     return (res.status == 200);
 
   } else {
-    console.log('Could not validate captcha');
+    console.warn('sumobubble: captcha validation failed');
   }
 
   return false;
@@ -78,32 +78,17 @@ const getServiceBase = () => {
 }
 
 export const sendChat = async (siteId: string, query: string) => {
-
-  const FAIL = 'Thinking...';
-
   try {
-
-    //const res = await fetch(`${getServiceBase()}api/chat/${config._id}/${chatId}`, {
     const res = await fetch(`${getServiceBase()}api/chat/${siteId}`, {
       method: 'POST',
-      headers: {
-        // todo how to protect this?
-      },
-      body: JSON.stringify({
-        "query": query
-      })
+      body: JSON.stringify({ query })
     });
 
     if (res.status === 200) {
-      // return chat.. todo set on state
-      const chatResJson = await res.json();
-
-      return chatResJson;
+      return await res.json();
     }
   } catch {
     //
   }
-  console.error(FAIL);
   return null;
-
 }

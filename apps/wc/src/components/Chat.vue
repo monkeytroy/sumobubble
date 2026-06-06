@@ -19,7 +19,7 @@
           </div>
         </div>
       </div>
-      <div ref="scrollToTargetRef" id="fred" class=""></div>
+      <div ref="scrollToTargetRef"></div>
     </div>
 
     <div class="flex flex-col">
@@ -83,8 +83,6 @@
     chatValue.value = '';
 
     if (v) {
-      console.log('Chatting...');  
-
       chats.value.push({
         user: 'User',
         text: v
