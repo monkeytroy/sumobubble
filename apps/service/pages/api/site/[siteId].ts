@@ -1,15 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectMongo from '@/src/lib/mongoose';
+import { requireSession } from '@/src/lib/require-session';
 import { log } from '@/src/lib/log';
 import Site, { ISite } from '@/src/models/site';
 import { ConfigRes } from '../types';
-import { getToken } from 'next-auth/jwt';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {
-    case 'GET':
-      await getSite(req, res);
-      break;
     case 'PUT':
       await updateSite(req, res);
       break;
@@ -22,46 +19,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 }
 
 /**
- * Get site could be disabled as it's no longer needed after moving to a file based publish.
- * @param req
- * @param res
- */
-const getSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
-  try {
-    await connectMongo();
-
-    const { siteId } = req.query;
-    log(`GET: api/site/${siteId}`);
-
-    const site = await Site.findById(siteId).select('-__v');
-
-    // fetch the customer
-    if (site) {
-      res.status(200).json({ success: true, message: 'Message for you sir!', data: site.toJSON() });
-    } else {
-      const message = `Config was not found for site ${siteId}`;
-      console.log(message);
-      res.status(404).json({ success: false, message });
-    }
-  } catch (err) {
-    res.status(500).json({ success: false, message: `Error ${(<Error>err)?.message}` });
-  }
-};
-
-/**
- * Update the site on user edits.
- * @param req
- * @param res
+ * Update the site on user edits. Customer-scoped: callers can only update
+ * sites they own.
  */
 const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
-  // route should be protected
-  // todo middleware or lib function for protected routes.
-  const session = await getToken({ req, secret: process.env.JWT_SECRET });
-  // early exit if not authorized.
-  if (!session) {
-    res.status(403).send({ success: false, message: 'Unauthorized' });
-    return;
-  }
+  const session = await requireSession(req, res);
+  if (!session) return;
 
   const { siteId } = req.query;
   log(`PUT: api/site/${siteId}`);
@@ -85,17 +48,18 @@ const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
 
     siteConfig.title = siteConfig.title.trim();
 
-    // find or create
-    const site = await Site.findOneAndUpdate({ _id: siteId }, siteConfig, {
-      new: true
-    });
+    const site = await Site.findOneAndUpdate(
+      { _id: siteId, customerId: session.sub },
+      siteConfig,
+      { new: true }
+    );
 
     if (site) {
       const { __v, ...siteRes } = site.toJSON();
       res.status(200).json({ success: true, message: 'Updated', data: siteRes });
     } else {
-      log('Could not update siteId: ' + siteId);
-      res.status(500).json({ success: false, message: 'Failed to update' });
+      log(`Could not update siteId ${siteId} for customer ${session.sub}`);
+      res.status(404).json({ success: false, message: 'Site not found' });
     }
   } catch (err) {
     res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
@@ -103,23 +67,24 @@ const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
 };
 
 /**
- * Delete a site
- * @param req
- * @param res
+ * Delete a site. Customer-scoped: callers can only delete sites they own.
  */
 const deleteSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+  const session = await requireSession(req, res);
+  if (!session) return;
+
   const { siteId } = req.query;
   log(`DELETE: api/site/${siteId}`);
 
   try {
     await connectMongo();
 
-    const deleteRes = await Site.findOneAndDelete({ _id: siteId });
+    const deleteRes = await Site.findOneAndDelete({ _id: siteId, customerId: session.sub });
 
     if (deleteRes) {
-      res.status(200).json({ success: true, message: 'Updated' });
+      res.status(200).json({ success: true, message: 'Deleted' });
     } else {
-      res.status(404).json({ success: true, message: 'Could not remove site' });
+      res.status(404).json({ success: false, message: 'Site not found' });
     }
   } catch (err) {
     res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });

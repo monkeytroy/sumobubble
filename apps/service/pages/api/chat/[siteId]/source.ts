@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { log } from '@/src/lib/log';
+import { requireSession } from '@/src/lib/require-session';
 import { AskSourceRes } from '../../types';
 import { Fields, Files, IncomingForm, File } from 'formidable';
 import fs from 'node:fs';
 import connectMongo from '@/src/lib/mongoose';
 import AskSource, { IAskSource } from '@/src/models/askSource';
+import Site from '@/src/models/site';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const config = {
@@ -33,19 +35,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
  * Not sure.  Maybe get chat history?
  */
 const getSourceDocs = async (req: NextApiRequest, res: NextApiResponse<AskSourceRes>) => {
+  const session = await requireSession(req, res);
+  if (!session) return;
+
   const { siteId } = req.query;
   const siteIdVal = Array.isArray(siteId) ? siteId[0] : siteId;
   log(`api/chat/${siteIdVal}/source`);
 
   if (!siteIdVal) {
-    return res.status(500).send({ success: false, message: 'Missing site id' });
+    return res.status(400).send({ success: false, message: 'Missing site id' });
   }
 
   try {
     await connectMongo();
 
+    // Customer-scoped: only return sources for sites this caller owns.
     const sources = await AskSource.find(
-      { siteId: siteIdVal, isMaster: false },
+      { siteId: siteIdVal, customerId: session.sub, isMaster: false },
       {
         customerId: 1,
         siteId: 1,
@@ -69,19 +75,28 @@ const getSourceDocs = async (req: NextApiRequest, res: NextApiResponse<AskSource
  * @returns
  */
 const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceRes>) => {
-  const { siteId } = req.query;
+  const session = await requireSession(req, res);
+  if (!session) return;
 
+  const { siteId } = req.query;
   const siteIdVal = Array.isArray(siteId) ? siteId[0] : siteId;
 
   log(`api/chat/${siteIdVal}/source`);
 
   if (!siteIdVal) {
-    return res.status(500).send({ success: false, message: 'Missing site id' });
+    return res.status(400).send({ success: false, message: 'Missing site id' });
   }
 
   const aiApiKey = process.env.GEMINI_API_KEY;
   if (!aiApiKey) {
     return res.status(500).send({ success: false, message: 'AI is not configured' });
+  }
+
+  // Customer-scoped ownership check: the caller must own this site.
+  await connectMongo();
+  const ownsSite = await Site.exists({ _id: siteIdVal, customerId: session.sub });
+  if (!ownsSite) {
+    return res.status(404).send({ success: false, message: 'Site not found' });
   }
 
   try {
@@ -126,7 +141,7 @@ const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceR
         // option 2 check for dup contents in other files?
 
         const askSource: IAskSource = {
-          customerId: '',
+          customerId: session.sub,
           siteId: siteIdVal,
           isMaster: false,
           origFilename: originalFilename,
@@ -171,7 +186,7 @@ const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceR
     const masterRec = await AskSource.findOneAndReplace(
       { siteId: siteIdVal, isMaster: true },
       {
-        customerId: '',
+        customerId: session.sub,
         siteId: siteIdVal,
         isMaster: true,
         contents: masterDocContents

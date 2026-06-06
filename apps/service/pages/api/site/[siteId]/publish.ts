@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectMongo from '@/src/lib/mongoose';
+import { requireSession } from '@/src/lib/require-session';
 import { log } from '@/src/lib/log';
 import Site from '@/src/models/site';
 import { getS3Client } from '@/src/lib/s3';
 import { PutObjectCommand, PutObjectRequest } from '@aws-sdk/client-s3';
 import { ConfigRes } from '../../types';
-// import { Readable } from 'stream';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {
@@ -18,13 +18,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 }
 
 const publishSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+  const session = await requireSession(req, res);
+  if (!session) return;
+
   const { siteId } = req.query;
   log(`POST: api/site/${siteId}/publish`);
 
   try {
     await connectMongo();
 
-    const site = await Site.findOne({ _id: siteId });
+    // Customer-scoped lookup: a user can only publish sites they own.
+    const site = await Site.findOne({ _id: siteId, customerId: session.sub });
 
     if (site) {
       // remove unnecessary fields

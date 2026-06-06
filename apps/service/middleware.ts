@@ -4,71 +4,32 @@ import { log } from './src/lib/log';
 
 const UNAUTH_PAGE = '/';
 
+// Page routes that require a signed-in user. Unauthenticated requests are
+// redirected to UNAUTH_PAGE. API-route auth is handled per-route via
+// requireSession() in src/lib/require-session.ts — that gives each handler
+// access to the session for ownership checks.
 const protectedRoutes = ['/console/*', '/sections/*'];
-
-const protectedApi = [
-  {
-    method: 'PUT',
-    route: '/api/config'
-  },
-  {
-    method: 'POST',
-    route: '/api/config'
-  },
-  {
-    method: 'DELETE',
-    route: '/api/config'
-  },
-  {
-    method: 'PUT',
-    route: '/api/files'
-  }
-];
 
 export enum Role {
   user = 'user',
   admin = 'admin'
 }
 
-/**
- * Handle unauthorized access to pages in protectedRoutes. Redirects to login for now.
- * @param req
- * @param res
- * @returns
- */
-export const middleware = async (req: NextRequest, res: NextResponse) => {
-  //log('pathname: ' + req.nextUrl.pathname);
+export const middleware = async (req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
 
-  const authHeader = req.headers.get('authorization');
-  const jwt = await getToken({ req, secret: process.env.JWT_SECRET });
+  const isProtected =
+    protectedRoutes.includes(pathname) ||
+    protectedRoutes.some((val) => val.endsWith('/*') && pathname.startsWith(val.replace('/*', '')));
 
-  // get users role.
-  //log(`jwt ${jwt?.provider} role ${jwt?.role}`);
-
-  // validate api
-  if (protectedApi.filter((v) => v.method == req.method && req.nextUrl.pathname.startsWith(v.route)).length > 0) {
-    //log('In protected api route ', jwt, authHeader);
-
-    if (!jwt && authHeader !== 'Bearer ' + process.env.API_TOKEN) {
-      return new NextResponse(JSON.stringify({ success: false, message: 'Unauthorized' }), {
-        status: 403,
-        headers: { 'content-type': 'application/json' }
-      });
-    }
+  if (!isProtected) {
+    return NextResponse.next();
   }
 
-  // validate page routes
-  if (
-    protectedRoutes.includes(pathname) ||
-    protectedRoutes.filter((val) => val.endsWith('/*') && pathname.startsWith(val.replace('/*', ''))).length > 0
-  ) {
-    //log('In protected route ', jwt);
-
-    if (!jwt) {
-      log('Redirect no jwt');
-      return NextResponse.redirect(new URL(UNAUTH_PAGE, req.url));
-    }
+  const jwt = await getToken({ req, secret: process.env.JWT_SECRET });
+  if (!jwt) {
+    log(`Redirecting unauthenticated request: ${pathname}`);
+    return NextResponse.redirect(new URL(UNAUTH_PAGE, req.url));
   }
 
   return NextResponse.next();
