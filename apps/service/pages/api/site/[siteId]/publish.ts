@@ -28,7 +28,7 @@ const publishSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>)
     await connectMongo();
 
     // Customer-scoped lookup: a user can only publish sites they own.
-    const site = await Site.findOne({ _id: siteId, customerId: session.sub });
+    const site = await Site.findOne({ _id: siteId, customerEmail: session.email });
 
     if (site) {
       // remove unnecessary fields

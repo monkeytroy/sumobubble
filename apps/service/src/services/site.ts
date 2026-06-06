@@ -23,17 +23,21 @@ export const fetchCustomerSites = async (email: string): Promise<ISitesSummary[]
 };
 
 /**
- * Fetch the site
- * @param {string} siteId get a site by the site id
- * @returns {ISite} the site config
+ * Fetch a site, scoped to the caller's email. Returns null if no site with
+ * the given id is owned by that email — same shape as "not found" so a
+ * mis-typed URL and a cross-account access attempt look identical to the
+ * caller (no information leak about whether the id exists for someone else).
  */
-export const fetchCustomerSite = async (siteId: string): Promise<ISite | null> => {
-  if (!siteId || !mongoose.isValidObjectId(siteId)) {
+export const fetchCustomerSite = async (
+  siteId: string,
+  customerEmail: string
+): Promise<ISite | null> => {
+  if (!siteId || !mongoose.isValidObjectId(siteId) || !customerEmail) {
     return null;
   }
 
   await connectMongo();
-  const site = await Site.findById(siteId).select('-__v');
+  const site = await Site.findOne({ _id: siteId, customerEmail }).select('-__v');
   return site;
 };
 
@@ -58,7 +62,7 @@ export const addNewSite = async (siteTitle: string) => {
  * @param {string} siteId the id of the site to remove
  * @returns
  */
-export const removeSite = async (siteId: string) => {
+export const removeSite = async (siteId: string): Promise<boolean> => {
   const res = await fetch(`/api/site/${siteId}`, {
     method: 'DELETE'
   });
@@ -72,16 +76,16 @@ export const removeSite = async (siteId: string) => {
       hideProgressBar: true
     });
 
-    return json.data;
-  } else {
-    toast.error('Ooops! Site was not removed. ' + json.message, {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
-    return null;
+    return true;
   }
+
+  toast.error('Ooops! Site was not removed. ' + json.message, {
+    position: 'top-center',
+    autoClose: 3000,
+    hideProgressBar: true
+  });
+
+  return false;
 };
 
 /**

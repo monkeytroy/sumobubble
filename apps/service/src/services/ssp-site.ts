@@ -39,8 +39,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const customer = await fetchOrCreateCustomer({ customerId, username, email });
 
-  // fetch customer site
-  const site = await fetchCustomerSite(Array.isArray(siteId) ? siteId[0] : siteId);
+  // fetch customer site (email-scoped — only returns the doc if owned by caller)
+  const site = await fetchCustomerSite(Array.isArray(siteId) ? siteId[0] : siteId, email);
   if (site) {
     // Pass data to the page via props
     return {

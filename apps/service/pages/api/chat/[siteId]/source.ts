@@ -49,9 +49,15 @@ const getSourceDocs = async (req: NextApiRequest, res: NextApiResponse<AskSource
   try {
     await connectMongo();
 
-    // Customer-scoped: only return sources for sites this caller owns.
+    // Verify site ownership by email; if the caller owns the site, return
+    // sources scoped to that siteId.
+    const ownsSite = await Site.exists({ _id: siteIdVal, customerEmail: session.email });
+    if (!ownsSite) {
+      return res.status(404).send({ success: false, message: 'Site not found' });
+    }
+
     const sources = await AskSource.find(
-      { siteId: siteIdVal, customerId: session.sub, isMaster: false },
+      { siteId: siteIdVal, isMaster: false },
       {
         customerId: 1,
         siteId: 1,
@@ -94,7 +100,7 @@ const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceR
 
   // Customer-scoped ownership check: the caller must own this site.
   await connectMongo();
-  const ownsSite = await Site.exists({ _id: siteIdVal, customerId: session.sub });
+  const ownsSite = await Site.exists({ _id: siteIdVal, customerEmail: session.email });
   if (!ownsSite) {
     return res.status(404).send({ success: false, message: 'Site not found' });
   }

@@ -49,7 +49,7 @@ const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
     siteConfig.title = siteConfig.title.trim();
 
     const site = await Site.findOneAndUpdate(
-      { _id: siteId, customerId: session.sub },
+      { _id: siteId, customerEmail: session.email },
       siteConfig,
       { new: true }
     );
@@ -58,7 +58,7 @@ const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
       const { __v, ...siteRes } = site.toJSON();
       res.status(200).json({ success: true, message: 'Updated', data: siteRes });
     } else {
-      log(`Could not update siteId ${siteId} for customer ${session.sub}`);
+      log(`Could not update siteId ${siteId} for ${session.email}`);
       res.status(404).json({ success: false, message: 'Site not found' });
     }
   } catch (err) {
@@ -79,7 +79,7 @@ const deleteSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
   try {
     await connectMongo();
 
-    const deleteRes = await Site.findOneAndDelete({ _id: siteId, customerId: session.sub });
+    const deleteRes = await Site.findOneAndDelete({ _id: siteId, customerEmail: session.email });
 
     if (deleteRes) {
       res.status(200).json({ success: true, message: 'Deleted' });

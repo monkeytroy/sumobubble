@@ -9,16 +9,18 @@ import type { JWT } from 'next-auth/jwt';
  *   const session = await requireSession(req, res);
  *   if (!session) return;
  */
-// JWT with a guaranteed `sub` (customer id). requireSession refuses to
-// return a session without one, so callers can use session.sub directly.
-export type AuthedSession = JWT & { sub: string };
+// JWT with guaranteed `sub` and `email`. requireSession refuses to return
+// a session missing either, so callers can use session.email directly.
+// We key ownership off `email` (stable user identity across User._id
+// resets in mongo). `sub` is exposed for logging / legacy code paths.
+export type AuthedSession = JWT & { sub: string; email: string };
 
 export const requireSession = async (
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<AuthedSession | null> => {
   const session = await getToken({ req, secret: process.env.JWT_SECRET });
-  if (!session?.sub) {
+  if (!session?.sub || !session?.email) {
     res.status(401).json({ success: false, message: 'Unauthorized' });
     return null;
   }
