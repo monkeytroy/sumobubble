@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getRGBColor, getAccessibleColor } from './theme';
+import { getRGBColor, getAccessibleColor, getTextColorByBrightness } from './theme';
 
 describe('getRGBColor', () => {
   it('converts a hex with a leading # to the CSS custom-property line', () => {
@@ -30,5 +30,21 @@ describe('getAccessibleColor', () => {
   it('flips around the YIQ=128 boundary', () => {
     // YIQ for #808080 is exactly 128 -> >= 128 path -> black
     expect(getAccessibleColor('#808080')).toBe('#000000');
+  });
+});
+
+describe('getTextColorByBrightness', () => {
+  it('returns light text for a dark background', () => {
+    expect(getTextColorByBrightness('#000033')).toBe('text-gray-300');
+    expect(getTextColorByBrightness('#202040')).toBe('text-gray-300');
+  });
+
+  it('returns dark text for a light background', () => {
+    expect(getTextColorByBrightness('#aaaaff')).toBe('text-gray-800');
+    expect(getTextColorByBrightness('#ffffff')).toBe('text-gray-800');
+  });
+
+  it('returns empty string for empty input (no class applied)', () => {
+    expect(getTextColorByBrightness('')).toBe('');
   });
 });
