@@ -1,31 +1,48 @@
 <template>
   <div>
     
-    <div v-if="config?.button == 'circleRight'"
-      class="fixed bottom-6 right-6 z-40 select-none">
-      <img src="../assets/i-icon.png" 
+    <button v-if="config?.button == 'circleRight'"
+      ref="launcherCircleRef"
+      type="button"
+      :aria-label="open ? 'Close chat' : 'Open chat'"
+      :aria-expanded="open"
+      aria-controls="sumobubble-dialog"
+      class="fixed bottom-6 right-6 z-40 select-none p-0 border-0 bg-transparent cursor-pointer"
+      @click="onClick">
+      <img src="../assets/i-icon.png"
+        alt=""
         class="w-12 h-12 select-none
-          cursor-pointer shadow-sm
+          shadow-sm
           hover:opacity-80 hover:shadow-md
-          bg-white rounded-full"
-        @click="onClick"/>
-    </div>
+          bg-white rounded-full"/>
+    </button>
 
-    <div v-else
-      class="fixed bottom-64 -right-0 -rotate-90 origin-bottom-right z-40 select-none">
+    <button v-else
+      ref="launcherTextRef"
+      type="button"
+      :aria-label="open ? 'Close chat' : 'Open chat'"
+      :aria-expanded="open"
+      aria-controls="sumobubble-dialog"
+      class="fixed bottom-64 -right-0 -rotate-90 origin-bottom-right z-40 select-none
+        p-0 border-0 bg-transparent cursor-pointer"
+      @click="onClick">
       <div class="relative select-none px-2 py-1
-          cursor-pointer shadow-md
+          shadow-md
           hover:opacity-90 hover:shadow-md
           rounded-ss-lg rounded-se-lg
-          bg-blue-600 text-white border-2 border-gray-500"
-        @click="onClick">
+          bg-blue-600 text-white border-2 border-gray-500">
         <div class="font-bold text-sm">
           <span v-if="info">Info</span><span v-if="info && chat"> | </span> <span v-if="chat">Chat</span>
         </div>
       </div>
-    </div>
+    </button>
 
-    <div class="fixed bottom-6 right-0 sm:right-0 z-999 max-w-full sm:max-w-md w-full" 
+    <div id="sumobubble-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sumobubble-title"
+      :aria-hidden="!open"
+      class="fixed bottom-6 right-0 sm:right-0 z-999 max-w-full sm:max-w-md w-full"
       :class="open ? 'visible': 'hidden'">
 
       <div class="rounded-3xl bg-white mx-4
@@ -35,12 +52,16 @@
         <div class="rounded-t-3xl 
           bg-skin-primary brightness-105 h-full
           text-2xl font-bold select-none">
-          <div class="flex justify-between items-center uppercase p-4 "
+          <div class="flex justify-between items-center uppercase p-4"
             :class="getTextColorByBrightness(config?.theme?.primary)">
-            {{ config?.title || 'Hello there'}}
-            <XCircleIcon class="w-6 h-6 cursor-pointer hover:opacity-70" 
+            <span id="sumobubble-title">{{ config?.title || 'Hello there' }}</span>
+            <button ref="closeBtnRef"
+              type="button"
+              aria-label="Close"
+              class="p-0 border-0 bg-transparent cursor-pointer"
               @click="close">
-            </XCircleIcon>
+              <XCircleIcon class="w-6 h-6 hover:opacity-70" />
+            </button>
           </div>
         </div>
 
@@ -108,7 +129,7 @@
 
 <script lang="ts" setup>
 
-  import { ref, provide, computed, watchEffect } from 'vue';
+  import { ref, provide, computed, watch, watchEffect, onMounted, onBeforeUnmount, nextTick } from 'vue';
   import { InformationCircleIcon, QuestionMarkCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
   import { getTextColorByBrightness } from '@/services/theme';
 
@@ -135,6 +156,13 @@
   const contactPanelRef = ref(null);
   const spotlightPanelRef = ref(null);
   const infoRequstPanelRef = ref(null);
+
+  // A11y: focus management + Escape handling.
+  // Only one of the two launchers renders (v-if/v-else), so just one of
+  // these refs is non-null at any time.
+  const launcherCircleRef = ref<HTMLButtonElement | null>(null);
+  const launcherTextRef = ref<HTMLButtonElement | null>(null);
+  const closeBtnRef = ref<HTMLButtonElement | null>(null);
 
   const page = ref('');
   const info = ref(false);
@@ -170,5 +198,29 @@
   const close = () => {
     open.value = false;
   }
+
+  // Move focus into the dialog when it opens; restore focus to the
+  // launcher that triggered it when it closes (either via the X or via
+  // Escape). Standard dialog UX.
+  watch(open, async (isOpen) => {
+    await nextTick();
+    if (isOpen) {
+      closeBtnRef.value?.focus();
+    } else {
+      (launcherCircleRef.value ?? launcherTextRef.value)?.focus();
+    }
+  });
+
+  // Escape closes the dialog when it's open. Listener is document-level
+  // (cleaner than focus-trapping inside the bubble — the bubble overlays
+  // a host page and we don't want to steal the user's tab focus).
+  const onKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && open.value) {
+      close();
+    }
+  };
+
+  onMounted(() => document.addEventListener('keydown', onKeydown));
+  onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 
 </script>
