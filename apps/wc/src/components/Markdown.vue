@@ -8,7 +8,7 @@
   import marked from 'markdown-it';
   import markedSup from 'markdown-it-sup';
   
-  const props = defineProps(['source']);
+  const props = defineProps<{ source?: string }>();
   
   const markdownIt = marked();
   markdownIt.use(markedSup);

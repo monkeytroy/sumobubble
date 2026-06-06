@@ -16,7 +16,7 @@
   import { computed } from 'vue';
   import VueSecureHTML from 'vue-html-secure';
 
-  const props = defineProps(['config']);
+  const props = defineProps<{ config: ISite }>();
 
   const safeHTML = VueSecureHTML.safeHTML;
   

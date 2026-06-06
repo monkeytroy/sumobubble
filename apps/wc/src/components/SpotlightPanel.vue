@@ -19,7 +19,7 @@
 
   import { computed } from 'vue';
 
-  const props = defineProps(['config']);
+  const props = defineProps<{ config: ISite }>();
   const spotlight = computed(() => props?.config?.sections.spotlight);
   const content = computed(() => props.config?.sections?.spotlight?.content || '');
 

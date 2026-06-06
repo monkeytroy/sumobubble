@@ -18,7 +18,7 @@ describe('getSiteConfig', () => {
       json: async () => ({ _id: SITE_ID, title: 'Site' }),
     });
 
-    const out = await getSiteConfig(SITE_ID, '');
+    const out = await getSiteConfig(SITE_ID, false);
 
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
     const calledUrl = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
@@ -32,7 +32,7 @@ describe('getSiteConfig', () => {
       json: async () => ({ data: { _id: SITE_ID, title: 'Preview' } }),
     });
 
-    const out = await getSiteConfig(SITE_ID, 'true');
+    const out = await getSiteConfig(SITE_ID, true);
 
     const calledUrl = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(calledUrl).toBe(`/api/site/${SITE_ID}`);
@@ -45,14 +45,14 @@ describe('getSiteConfig', () => {
       json: async () => ({}),
     });
 
-    const out = await getSiteConfig(SITE_ID, '');
+    const out = await getSiteConfig(SITE_ID, false);
     expect(out).toBeNull();
   });
 
   it('returns null when fetch throws', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network down'));
 
-    const out = await getSiteConfig(SITE_ID, '');
+    const out = await getSiteConfig(SITE_ID, false);
     expect(out).toBeNull();
   });
 });

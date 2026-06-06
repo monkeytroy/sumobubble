@@ -12,10 +12,10 @@
   import { getSiteConfig } from '@/services/api';
   import { getRGBColor, getAccessibleColor } from '@/services/theme';
 
-  const props = defineProps({
-    site: String,
-    preview: Boolean,
-  });
+  const props = defineProps<{
+    site?: string;
+    preview?: boolean;
+  }>();
   
   // custom dynamic theme for TW
   const config = ref<ISite>();

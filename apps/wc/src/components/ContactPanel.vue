@@ -111,7 +111,7 @@
   import { getTextColorByBrightness } from '@/services/theme';
   import { CAPTCHA_SITE_KEY } from '@/config';
 
-  const props = defineProps(['config']);
+  const props = defineProps<{ config: ISite }>();
   const content = computed(() => props.config?.sections?.contact?.content || '');
 
   const nameInput = ref();

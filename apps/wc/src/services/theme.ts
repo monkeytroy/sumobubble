@@ -19,7 +19,7 @@ export const getAccessibleColor = (hex: string) => {
 // Picks a Tailwind text color that's readable against the given hex background.
 // Same YIQ formula as getAccessibleColor; the boundary (128) matches WCAG-ish
 // brightness perception.
-export const getTextColorByBrightness = (color: string): string => {
+export const getTextColorByBrightness = (color: string | undefined): string => {
   if (!color) return '';
   const hex = color.replace(/#/g, '');
   const r = parseInt(hex.substring(0, 2), 16);

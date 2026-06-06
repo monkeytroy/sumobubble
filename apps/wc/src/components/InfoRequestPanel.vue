@@ -99,12 +99,7 @@
   import { getTextColorByBrightness } from '@/services/theme';
   import { CAPTCHA_SITE_KEY } from '@/config';
 
-  interface IContactCategory {
-    title: string,
-    email: string
-  }
-
-  const props = defineProps(['config']);
+  const props = defineProps<{ config: ISite }>();
   const section = props.config?.sections?.inforequest;
   const content = computed(() => section?.content || '');
 

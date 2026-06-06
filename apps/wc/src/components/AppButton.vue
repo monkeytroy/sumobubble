@@ -126,7 +126,7 @@
     CHAT = 'chat'
   }
 
-  const props = defineProps(['config']);
+  const props = defineProps<{ config: ISite }>();
   const open = ref(false);
 
   const scrollContainer = ref(null);

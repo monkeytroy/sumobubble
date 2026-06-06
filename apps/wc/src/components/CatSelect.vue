@@ -38,13 +38,13 @@
   </Listbox>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 
   import { ref } from 'vue'
   import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
   import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 
-  const props = defineProps(['categories']);
+  const props = defineProps<{ categories: IContactCategory[] }>();
   const emits = defineEmits(['selectedCategory']);
 
   const selectedCat = ref(props.categories.length > 0 ? props.categories[0].title : '');

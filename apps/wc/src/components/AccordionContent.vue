@@ -24,7 +24,12 @@
   import { scrollContent } from '@/services/scroll';
   import { MinusIcon, PlusIcon } from '@heroicons/vue/20/solid';
 
-  const props = defineProps(['title', 'defaultOpen', 'config', 'scrollItem']);
+  const props = defineProps<{
+    title?: string;
+    defaultOpen?: boolean;
+    config?: ISite;
+    scrollItem?: string;
+  }>();
   const isOpen = ref(props.defaultOpen);
   const contentRef = ref(null);
 

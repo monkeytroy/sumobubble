@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 declare module "markdown-it-sup";
 declare module "vue-html-secure";
 
@@ -12,6 +14,7 @@ interface ISite {
   customerEmail: string;
   title: string;
   isDev?: boolean;
+  button?: string;            // e.g. 'circleRight' — controls bubble launcher style
   theme?: {
     primary?: string;
   }
@@ -48,4 +51,9 @@ interface ISiteSection {
     copyright?: string;
     categories?: IContactCategory[];
   }
+}
+
+interface IContactCategory {
+  title: string;
+  email: string;
 }
