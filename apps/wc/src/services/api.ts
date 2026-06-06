@@ -3,6 +3,7 @@ import { SITES_BASE_URL } from '@/config';
 export interface IChat {
   user: string;
   text: string;
+  isError?: boolean;
 }
 
 /**

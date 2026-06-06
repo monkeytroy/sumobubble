@@ -3,18 +3,18 @@
 
     <div class="grow flex flex-col gap-4 px-4 overflow-y-auto">
 
-      <div v-for="(chat, index) in chats" :key="index" 
-        :class="[ chat.user == 'AI' ? 
-          'flex justify-start' : 
-          'flex justify-end' ]">
-        <div class="flex flex-col gap-0.5 py-2 px-4 rounded-md shadow-md w-auto" 
-          :class="[ chat.user == 'AI' ? 
-            'bg-green-300' : 
-            'bg-blue-200' ]">
-          <div class="text-sm text-gray-600">
+      <div v-for="(chat, index) in chats" :key="index"
+        :class="chat.user == 'AI' ? 'flex justify-start' : 'flex justify-end'">
+        <div class="flex flex-col gap-0.5 py-2 px-4 rounded-md shadow-md w-auto"
+          :class="chat.isError
+            ? 'bg-red-100 border border-red-300'
+            : chat.user == 'AI'
+              ? 'bg-green-300'
+              : 'bg-blue-200'">
+          <div class="text-sm" :class="chat.isError ? 'text-red-700' : 'text-gray-600'">
             {{ chat.user }}
           </div>
-          <div class="text-gray-800">
+          <div :class="chat.isError ? 'text-red-800' : 'text-gray-800'">
             {{ chat.text }}
           </div>
         </div>
@@ -95,20 +95,21 @@
   }
 
   const sendQuery = async (query: string) => {
-
-    const siteId = props.config?._id;
+    const siteId = props.config?._id ?? '';
 
     thinking.value = true;
     const res = await sendChat(siteId, query);
+    thinking.value = false;
 
     if (res?.success) {
+      chats.value.push({ user: 'AI', text: res.message });
+    } else {
       chats.value.push({
         user: 'AI',
-        text: res.message
+        text: "Sorry, something went wrong. Please try again.",
+        isError: true
       });
     }
-
-    thinking.value = false;
 
     nextTick(scrollTo);
   }
