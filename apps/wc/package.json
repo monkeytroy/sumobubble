@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --kill-others-on-fail -n vite,serve -c blue,green \"vite build --watch --mode development\" \"http-server ./dist -p 3001 --cors --silent\"",
+    "dev:hmr": "vite",
     "build": "vite build",
     "preview:bundle": "vite build --mode development && http-server ./dist -p 3001 --cors",
     "lint": "eslint .",
@@ -29,6 +30,7 @@
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/eslint-config-typescript": "^14.8.0",
     "@vue/test-utils": "^2.4.11",
+    "concurrently": "^10.0.3",
     "eslint": "^9.39.4",
     "eslint-plugin-vue": "^10.9.2",
     "http-server": "^14.1.1",

@@ -7,6 +7,9 @@ import { ConfigRes } from '../types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {
+    case 'GET':
+      await getSite(req, res);
+      break;
     case 'PUT':
       await updateSite(req, res);
       break;
@@ -17,6 +20,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       res.status(405).send({ success: false, message: 'Method unsupported' });
   }
 }
+
+/**
+ * Fetch a site, customer-scoped. Used by the wc in preview mode (loaded
+ * inside the authenticated /console/* pages) to render the in-progress
+ * config without going through the published S3 file.
+ */
+const getSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+  const session = await requireSession(req, res);
+  if (!session) return;
+
+  const { siteId } = req.query;
+  log(`GET: api/site/${siteId}`);
+
+  try {
+    await connectMongo();
+
+    const site = await Site.findOne({ _id: siteId, customerEmail: session.email }).select('-__v');
+
+    if (site) {
+      res.status(200).json({ success: true, message: 'OK', data: site.toJSON() });
+    } else {
+      res.status(404).json({ success: false, message: 'Site not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: `Error ${(<Error>err)?.message}` });
+  }
+};
 
 /**
  * Update the site on user edits. Customer-scoped: callers can only update

@@ -41,9 +41,17 @@ won't leak styles into / inherit styles from the host.
 ## Dev / build / test
 
 ```sh
-pnpm dev             # vite dev w/ HMR on :3001 (entry: index.html)
+pnpm dev             # vite build --watch + http-server on :3001 — serves
+                     # the rebuilt dist/sumobubble.js. Use this when the
+                     # console preview ('apps/service' under /console)
+                     # needs to load the bundle, or when running the full
+                     # monorepo via `pnpm dev` at the root.
+pnpm dev:hmr         # vite dev w/ HMR — faster iteration when working on
+                     # the wc in isolation (entry: index.html). No
+                     # /sumobubble.js URL exists in this mode, so the
+                     # service console preview won't find the bundle.
 pnpm build           # prod bundle -> dist/sumobubble.js
-pnpm preview:bundle  # build + serve dist as the deployed site would
+pnpm preview:bundle  # one-shot build + serve dist (no watch)
 pnpm test            # vitest, src/**/*.test.ts
 pnpm lint            # eslint
 pnpm format          # prettier --write .

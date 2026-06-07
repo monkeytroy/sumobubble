@@ -35,6 +35,13 @@ export default defineConfig({
       }
     }
   },
+  // Narrow shim for libs (Vue, headlessui, etc.) that read
+  // process.env.NODE_ENV at runtime. Replaces ONLY that one identifier
+  // with a string literal — not the whole `process.env` (which would
+  // leak any env var defined at build time into the shipped bundle).
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

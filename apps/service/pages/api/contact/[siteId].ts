@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { mailIt } from '@/src/services/mail';
 import { apiMiddleware } from '@/src/lib/api-middleware';
+import { verifyRecaptcha } from '@/src/lib/verify-recaptcha';
 import connectMongo from '@/src/lib/mongoose';
 import Site, { IContactCategory } from '@/src/models/site';
 import { log } from '@/src/lib/log';
@@ -40,9 +41,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   try {
     const { section, category, email, name, phone, moreInfo, message, token }: ContactData = JSON.parse(req.body);
 
-    log(`Contact body: ${req.body}`);
-
-    // todo validate token
+    // Verify the reCAPTCHA token with Google BEFORE doing any work
+    // (DB lookups, sending mail). The wc executes recaptcha with
+    // action: 'submit' — see apps/wc/src/composables/useRecaptcha.ts.
+    const human = await verifyRecaptcha(token, 'submit');
+    if (!human) {
+      res.status(403).json({ success: false, message: 'reCAPTCHA verification failed' });
+      return;
+    }
 
     if (section && email && name && message && token) {
       // get the config.
@@ -77,11 +83,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             log(`Category: ${JSON.stringify(categoryRec)}`);
 
             if (categoryRec) {
-              log('we made it! ' + JSON.stringify(categoryRec.email));
-
-              mailBody.emailTo = categoryRec;
-
-              mailIt(mailBody);
+              mailBody.emailTo = categoryRec.email;
+              await mailIt(mailBody);
 
               resultStatus = 200;
               result.success = true;
@@ -89,14 +92,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             }
           } else {
             const emailRec = sectionRec?.props.email;
-            log(`Email destination: ${JSON.stringify(sectionRec?.props)}`);
 
             if (emailRec && emailRec[0]) {
-              log('we made it using email ' + JSON.stringify(emailRec[0]));
-
               mailBody.emailTo = emailRec[0];
-
-              mailIt(mailBody);
+              await mailIt(mailBody);
 
               resultStatus = 200;
               result.success = true;
