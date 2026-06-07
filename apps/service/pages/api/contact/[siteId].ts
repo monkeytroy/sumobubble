@@ -6,7 +6,7 @@ import { verifyRecaptcha } from '@/src/lib/verify-recaptcha';
 import connectMongo from '@/src/lib/mongoose';
 import Site, { IContactCategory } from '@/src/models/site';
 import { log } from '@/src/lib/log';
-import { IApiRes } from '@/pages/api/_types';
+import { IApiRes } from '@/src/lib/api-types';
 
 const cors = Cors({
   methods: ['POST', 'GET', 'HEAD']

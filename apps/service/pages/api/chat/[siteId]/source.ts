@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { log } from '@/src/lib/log';
 import { requireSession } from '@/src/lib/require-session';
-import { AskSourceRes } from '../../_types';
+import { AskSourceRes } from '@/src/lib/api-types';
 import { Fields, Files, IncomingForm, File } from 'formidable';
 import fs from 'node:fs';
 import connectMongo from '@/src/lib/mongoose';

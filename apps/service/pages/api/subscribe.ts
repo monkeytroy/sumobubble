@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import connectMongo from '@/src/lib/mongoose';
 import Customer, { SubscriptionStatus } from '@/src/models/customer';
 import { log } from '@/src/lib/log';
-import { ConfigRes } from './_types';
+import { ConfigRes } from '@/src/lib/api-types';
 
 /**
  * Stripe webhook. Stripe sends signed payloads — we verify the signature

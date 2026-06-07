@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { apiMiddleware } from '@/src/lib/api-middleware';
 import { log } from '@/src/lib/log';
-import { IApiRes } from '../../_types';
+import { IApiRes } from '@/src/lib/api-types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import AskSource from '@/src/models/askSource';
 import connectMongo from '@/src/lib/mongoose';
@@ -101,15 +101,10 @@ const post = async (req: NextApiRequest, res: NextApiResponse<IApiRes>) => {
       Here is the summary text to  answer questions. 
     `;
 
-    console.log(prompt, masterSource.contents, query);
-
     const result = await model.generateContent([prompt, masterSource.contents, 'Here is the users question:', query]);
 
     const text = result.response.text();
 
-    console.log(text);
-
-    // return it
     if (text) {
       res.status(200).json({ success: true, message: text });
     } else {

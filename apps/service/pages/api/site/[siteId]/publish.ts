@@ -5,7 +5,7 @@ import { log } from '@/src/lib/log';
 import Site from '@/src/models/site';
 import { getS3Client } from '@/src/lib/s3';
 import { PutObjectCommand, PutObjectRequest } from '@aws-sdk/client-s3';
-import { ConfigRes } from '../../_types';
+import { ConfigRes } from '@/src/lib/api-types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {

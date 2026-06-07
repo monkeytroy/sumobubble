@@ -1,5 +1,5 @@
 import NextAuth, { Session, User } from 'next-auth';
-import clientPromise from '@/pages/api/auth/lib/_mongo-client';
+import clientPromise from '@/src/lib/mongo-client';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import { log } from '@/src/lib/log';
 import { JWT } from 'next-auth/jwt/types';
@@ -47,51 +47,15 @@ export const authOptions = {
     },
 
     async jwt({ token }: { token: JWT }) {
-      //console.log('jwt ----------------------------------------------------');
-      //console.log(`JWT token: `, token);
-      // only provided the first time after sign in.
-      //console.log(`JWT user: `, user);
-      //console.log(`JWT account: `, account);
-      //console.log(`JWT profile: `, profile);
-
-      // any custom fields here.
-      // if (user) {
-      //   token.role = user.role;
-      // }
-
-      //log(`Final JWT token: `, token);
       return token;
     },
 
-    /**
-     * No session if adapter is used?
-     * @param param0
-     * @returns
-     */
     async session({ session, token }: { session: Session; token: JWT }) {
-      log('session ----------------------------------------------------');
-
       if (session?.user) {
         session.user.id = token.sub || '';
-        // any custom role here.
-        //session.user.role = token.role as Role;
       }
-
-      //log('session ==> ', session);
-      //log('token ==>', token);
-
       return session;
     }
-
-    // createUser() {
-    //   console.log('crete user');
-    // },
-    // updateUser() {
-    //   console.log('update user');
-    // },
-    // linkAccount() {
-    //   console.log('link user');
-    // }
   },
   logger: {
     error(code: string, metadata: any) {

@@ -3,7 +3,7 @@ import connectMongo from '@/src/lib/mongoose';
 import { getToken } from 'next-auth/jwt';
 import Site, { ISite } from '@/src/models/site';
 import { log } from '@/src/lib/log';
-import { ConfigRes } from '../_types';
+import { ConfigRes } from '@/src/lib/api-types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {
@@ -27,12 +27,11 @@ const createSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
 
     const session = await getToken({ req, secret: process.env.JWT_SECRET });
 
-    // todo test if this can change... cust id
     const customerId = session?.sub;
     const customerEmail = session?.email;
     if (!customerId || !customerEmail) {
       log(`/api/site put missing customer info from session ${JSON.stringify(session)}`);
-      invalid(res, 'Missiong customer information id or email.');
+      invalid(res, 'Missing customer information id or email.');
       return;
     }
 
