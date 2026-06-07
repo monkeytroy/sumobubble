@@ -23,9 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     case 'POST':
       await addSourceDoc(req, res);
       break;
-    case 'DELETE':
-      //await deleteSourceDoc(req, res);
-      break;
     default:
       res.status(405).send({ success: false, message: 'Method unsupported' });
   }
@@ -205,7 +202,8 @@ const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceR
 
     res.status(200).json({ success: true, message: 'Ok' });
   } catch (err) {
-    res.status(405).send({ success: false, message: `Error ${(<Error>err)?.message}` });
+    log(`api/chat/${siteIdVal}/source error: ${(<Error>err)?.message}`);
+    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
     return;
   }
 };
