@@ -3,7 +3,7 @@ import connectMongo from '@/src/lib/mongoose';
 import { requireSession } from '@/src/lib/require-session';
 import { log } from '@/src/lib/log';
 import Site, { ISite } from '@/src/models/site';
-import { ConfigRes } from '../types';
+import { ConfigRes } from '../_types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {

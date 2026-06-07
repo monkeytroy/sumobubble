@@ -11,8 +11,8 @@ test('Home Landing Page', async () => {
   expect(mainTitle.textContent).toEqual('SumoBubble');
 
   const pricingTableContainer = screen.getByTestId('pricing-table-container');
-  expect(pricingTableContainer).to.exist;
+  expect(pricingTableContainer).toBeDefined();
 
   const pricingTable = screen.getByTestId('pricing-table');
-  expect(pricingTable).to.exist;
+  expect(pricingTable).toBeDefined();
 });

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { log } from '@/src/lib/log';
 import { requireSession } from '@/src/lib/require-session';
-import { AskSourceRes } from '../../types';
+import { AskSourceRes } from '../../_types';
 import { Fields, Files, IncomingForm, File } from 'formidable';
 import fs from 'node:fs';
 import connectMongo from '@/src/lib/mongoose';
@@ -170,7 +170,7 @@ const addSourceDoc = async (req: NextApiRequest, res: NextApiResponse<AskSourceR
 
     // ai gen a master doc
     const genAI = new GoogleGenerativeAI(aiApiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // todo configure
     const prompt = `

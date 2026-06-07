@@ -43,3 +43,6 @@ pnpm-debug.log*
 
 # Turborepo (cache + per-user TUI state)
 .turbo/
+
+# TinyMCE static assets copied from node_modules by postinstall.js
+apps/service/public/tinymce/

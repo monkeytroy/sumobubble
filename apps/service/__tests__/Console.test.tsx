@@ -8,7 +8,7 @@ test('Home Landing Page', async () => {
   customRender(<Console {...mockProps} />, { session: mockSession });
 
   const sitesText = screen.getByText('Welcome! Ready to get started?');
-  expect(sitesText).toBeDefined;
+  expect(sitesText).toBeDefined();
 
-  expect(screen.getByText('Choose a Site to Edit (1 Sites)')).toBeDefined;
+  expect(screen.getByText('Choose a Site to Edit (1 Sites)')).toBeDefined();
 });

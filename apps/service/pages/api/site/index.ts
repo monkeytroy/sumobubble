@@ -3,7 +3,7 @@ import connectMongo from '@/src/lib/mongoose';
 import { getToken } from 'next-auth/jwt';
 import Site, { ISite } from '@/src/models/site';
 import { log } from '@/src/lib/log';
-import { ConfigRes } from '../types';
+import { ConfigRes } from '../_types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
   switch (req.method) {

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { apiMiddleware } from '@/src/lib/api-middleware';
 import { log } from '@/src/lib/log';
-import { IApiRes } from '../../types';
+import { IApiRes } from '../../_types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import AskSource from '@/src/models/askSource';
 import connectMongo from '@/src/lib/mongoose';

@@ -5,7 +5,6 @@ import { addNewSite, removeSite, saveSite } from '@/src/services/site';
 import { getSourceDocuments } from '@/src/services/source';
 import { toast } from 'react-toastify';
 import { create } from 'zustand';
-import _ from 'lodash';
 import { ISitesSummary } from '@/src/services/types';
 import { ISite, ISiteSections } from '@/src//models/site';
 
