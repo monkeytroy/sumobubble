@@ -18,23 +18,23 @@ export function AccountSettings(props: IAppProps) {
 
       <div className="relative max-w-2xl">
         <div className="flex flex-col gap-4">
-          <p className="text-3xl font-bold tracking-tight text-gray-800 sm:text-3xl py-4">Account</p>
-          <p className="text-base leading-7 text-gray-600">Welcome! Ready to get started?</p>
+          <p className="text-3xl font-bold tracking-tight text-gray-800 sm:text-3xl py-4">Welcome!</p>
+          <p className="text-base leading-7 text-gray-600">Ready to get started?</p>
           <dl className="space-y-8 text-base leading-7 text-gray-600">
             <div className="relative pl-9">
-              <dt className="inline font-semibold text-gray-900">1. Create a Site</dt>{' '}
-              <dd className="inline">Start out by creating a site below. Then select it!</dd>
+              <dt className="inline font-semibold text-gray-900">1. Create a Site - </dt>{' '}
+              <dd className="inline">Create your Site by name, then select it!</dd>
             </div>
             <div className="relative pl-9">
               <dt className="inline font-semibold text-gray-900">2. Configure the Site</dt>{' '}
               <dd className="inline">
-                Enter a summary for your site that will display when someone opens SumoBubble. You can also enable and
+                Once selected, add a summary for your organization that will display when someone opens SumoBubble. You can also enable and
                 configure additional sections.
               </dd>
             </div>
             <div className="relative pl-9">
               <dt className="inline font-semibold text-gray-900">3. Publish!</dt>{' '}
-              <dd className="inline">When you have Info Chat all setup... publish to make it public!</dd>
+              <dd className="inline">When you have Info Chat all setup... publish to make it public using the provided instructions on the Site Setup page.</dd>
             </div>
           </dl>
         </div>

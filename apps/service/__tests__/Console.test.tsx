@@ -4,11 +4,11 @@ import Console from '../pages/console/index';
 import { customRender } from './utils';
 import { mockProps, mockSession } from './mocks';
 
-test('Home Landing Page', async () => {
+test('Sites landing page renders the site list', async () => {
   customRender(<Console {...mockProps} />, { session: mockSession });
 
-  const sitesText = screen.getByText('Welcome! Ready to get started?');
-  expect(sitesText).toBeDefined();
-
+  // Mock has 1 site so the list + count line render.
   expect(screen.getByText('Choose a Site to Edit (1 Sites)')).toBeDefined();
+  // And the site name from the mock renders inside the list card.
+  expect(screen.getByText('Fred')).toBeDefined();
 });
