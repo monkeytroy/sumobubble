@@ -3,7 +3,6 @@ import { ICustomer } from '@/src/models/customer';
 import { preview } from '@/src/lib/preview';
 import { addNewSite, removeSite, saveSite } from '@/src/services/site';
 import { getSourceDocuments } from '@/src/services/source';
-import { toast } from 'react-toastify';
 import { create } from 'zustand';
 import { ISitesSummary } from '@/src/services/types';
 import { ISite, ISiteSections } from '@/src//models/site';
@@ -50,24 +49,10 @@ export const useAppStore = create<IAppState>((set, get) => ({
   setSiteChanged: (val: boolean) => set(() => ({ siteChanged: val })),
 
   addSite: async (siteTitle: string) => {
-    // call the service.
-    const newSiteRes = await addNewSite(siteTitle);
-
-    // update store
-    if (newSiteRes?.success && newSiteRes?.data) {
-      set((state) => ({ sites: [...state.sites, { ...newSiteRes?.data }] }));
-
-      toast.success('Created!', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: true
-      });
-    } else {
-      toast.error('Ooops! New site was not created. ' + newSiteRes.message, {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: true
-      });
+    // Service handles its own success/failure toast.
+    const newSite = await addNewSite(siteTitle);
+    if (newSite) {
+      set((state) => ({ sites: [...state.sites, { _id: newSite._id || '', title: newSite.title }] }));
     }
   },
 
@@ -93,7 +78,9 @@ export const useAppStore = create<IAppState>((set, get) => ({
   updateSite: async (site: ISite) => {
     set(() => ({ saving: true }));
     const newSite = await saveSite(site);
-    get().setSite(newSite);
+    if (newSite) {
+      get().setSite(newSite);
+    }
     set(() => ({ saving: false }));
   },
 
@@ -119,17 +106,18 @@ export const useAppStore = create<IAppState>((set, get) => ({
       // service
       const res = await saveSite(site);
 
-      // back to state
-      get().setSite(res);
+      // back to state (only if save succeeded; otherwise keep prior site)
+      if (res) {
+        get().setSite(res);
+      }
     }
   },
 
   refreshAskSources: async () => {
     const site = get().site;
     if (site?._id) {
-      const res = await getSourceDocuments(site?._id);
-      if (res?.success) {
-        const sources = res.data;
+      const sources = await getSourceDocuments(site._id);
+      if (sources) {
         set(() => ({ askSources: sources }));
       }
     }

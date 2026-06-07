@@ -65,18 +65,21 @@ const getServiceBase = (): string => {
   return match ? match[0] : '/';
 };
 
-export const sendChat = async (siteId: string, query: string) => {
+/**
+ * Send a user query to the AI chat endpoint. Returns the reply text on
+ * success, or null on any failure (network, non-2xx, empty AI response).
+ */
+export const sendChat = async (siteId: string, query: string): Promise<string | null> => {
   try {
     const res = await fetch(`${getServiceBase()}api/chat/${siteId}`, {
       method: 'POST',
       body: JSON.stringify({ query })
     });
 
-    if (res.status === 200) {
-      return await res.json();
-    }
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.data?.reply ?? null;
   } catch {
-    //
+    return null;
   }
-  return null;
 };

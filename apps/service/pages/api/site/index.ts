@@ -1,80 +1,59 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectMongo from '@/src/lib/mongoose';
-import { getToken } from 'next-auth/jwt';
+import { requireSession } from '@/src/lib/require-session';
 import Site, { ISite } from '@/src/models/site';
 import { log } from '@/src/lib/log';
-import { ConfigRes } from '@/src/lib/api-types';
+import { ApiOk, ApiError, ErrorCode } from '@/src/lib/api-types';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
+type SiteRes = NextApiResponse<ApiOk<ISite> | ApiError>;
+
+export default async function handler(req: NextApiRequest, res: SiteRes) {
   switch (req.method) {
     case 'POST':
       await createSite(req, res);
       break;
     default:
-      res.status(405).send({ success: false, message: 'Method unsupported' });
+      res.status(405).json({ error: { code: ErrorCode.MethodNotAllowed, message: 'Method unsupported' } });
   }
 }
 
-/**
- * Create a new record.
- * @param req
- * @param res
- * @returns
- */
-const createSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+const createSite = async (req: NextApiRequest, res: SiteRes) => {
+  const session = await requireSession(req, res);
+  if (!session) return;
+
   try {
     await connectMongo();
-
-    const session = await getToken({ req, secret: process.env.JWT_SECRET });
-
-    const customerId = session?.sub;
-    const customerEmail = session?.email;
-    if (!customerId || !customerEmail) {
-      log(`/api/site put missing customer info from session ${JSON.stringify(session)}`);
-      invalid(res, 'Missing customer information id or email.');
-      return;
-    }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
     const siteTitle = body?.title;
     if (!siteTitle) {
-      invalid(res, 'Site name was not provided');
+      res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'Site name was not provided' } });
       return;
     }
 
     // TODO check subscription limits
-    const total = await (await Site.find({ customerId: customerId })).length;
+    const total = await Site.find({ customerEmail: session.email }).countDocuments();
     if (total >= 2) {
-      invalid(res, 'Already at the max number of sites allowed.');
+      res.status(409).json({ error: { code: 'site_limit_reached', message: 'Already at the max number of sites allowed.' } });
       return;
     }
 
-    // create new empty site.
     const newSite: ISite = {
-      customerId,
-      customerEmail,
+      customerId: session.sub,
+      customerEmail: session.email,
       title: siteTitle,
-      summary: {
-        enabled: false,
-        content: ''
-      },
-      chatbot: {
-        enabled: false
-      },
+      summary: { enabled: false, content: '' },
+      chatbot: { enabled: false },
       sections: {}
     };
 
-    const newSiteRes = await Site.create(newSite);
-    const { __v, ...siteRes } = newSiteRes.toJSON();
+    const created = await Site.create(newSite);
+    const { __v, ...siteRes } = created.toJSON();
 
-    res.json({ success: true, message: 'Created', data: siteRes });
-  } catch (err: any) {
+    res.status(201).json({ data: siteRes });
+  } catch (err) {
     log(err);
-    res.status(400).send({ success: false, message: err?.message || 'Something went wrong.' });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message || 'Something went wrong.' } });
   }
-};
-
-const invalid = (res: NextApiResponse, reason: string) => {
-  res.status(400).send({ success: false, message: reason });
 };

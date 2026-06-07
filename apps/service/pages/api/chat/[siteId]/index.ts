@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { apiMiddleware } from '@/src/lib/api-middleware';
 import { log } from '@/src/lib/log';
-import { IApiRes } from '@/src/lib/api-types';
+import { ApiOk, ApiError, ErrorCode } from '@/src/lib/api-types';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import AskSource from '@/src/models/askSource';
 import connectMongo from '@/src/lib/mongoose';
@@ -11,7 +11,10 @@ const cors = Cors({
   methods: ['GET', 'POST', 'HEAD']
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+type ChatReply = { reply: string };
+type ChatRes = NextApiResponse<ApiOk<ChatReply> | ApiError>;
+
+export default async function handler(req: NextApiRequest, res: ChatRes) {
   await apiMiddleware(req, res, cors);
 
   switch (req.method) {
@@ -22,41 +25,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await post(req, res);
       break;
     default:
-      res.status(405).send({ success: false, message: 'Method unsupported' });
+      res.status(405).json({ error: { code: ErrorCode.MethodNotAllowed, message: 'Method unsupported' } });
   }
 }
 
 /**
  * TBD - need to store or cache chats for reloads
  */
-const get = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    res.status(200).send({ success: false, message: 'No chat history yet.' });
-  } catch (err) {
-    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
-    return;
-  }
+const get = async (_req: NextApiRequest, res: ChatRes) => {
+  res.status(501).json({ error: { code: 'not_implemented', message: 'Chat history not implemented yet.' } });
 };
 
-/**
- * User posted chat message - todo figure out
- *
- * @param req
- * @param res
- * @returns
- */
-const post = async (req: NextApiRequest, res: NextApiResponse<IApiRes>) => {
+const post = async (req: NextApiRequest, res: ChatRes) => {
   const { siteId } = req.query;
   const siteIdVal = Array.isArray(siteId) ? siteId[0] : siteId;
   log(`api/chat/${siteId}`);
 
   if (!siteIdVal) {
-    return res.status(500).send({ success: false, message: 'Missing site id' });
+    return res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'Missing site id' } });
   }
 
   const aiApiKey = process.env.GEMINI_API_KEY;
   if (!aiApiKey) {
-    return res.status(500).send({ success: false, message: 'AI is not configured' });
+    return res.status(500).json({ error: { code: ErrorCode.InternalError, message: 'AI is not configured' } });
   }
 
   try {
@@ -67,53 +58,51 @@ const post = async (req: NextApiRequest, res: NextApiResponse<IApiRes>) => {
 
     const masterSource = await AskSource.findOne(
       { siteId: siteIdVal, isMaster: true },
-      {
-        siteId: 1,
-        contents: 1
-      }
+      { siteId: 1, contents: 1 }
     );
 
-    // do AI req
+    if (!masterSource) {
+      return res.status(404).json({ error: { code: 'no_corpus', message: 'No source content has been uploaded for this site.' } });
+    }
+
     const genAI = new GoogleGenerativeAI(aiApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // todo configure
     const prompt = `
-      You are a happy, playful, and helpful assistant called Sumo Bubble Assistant. You will be provided 
-      some summary information about an organization or individual and then asked 
-      questions about that organization or individual. 
+      You are a happy, playful, and helpful assistant called Sumo Bubble Assistant. You will be provided
+      some summary information about an organization or individual and then asked
+      questions about that organization or individual.
 
-      You will only answer questions based on the provided summary, not from any 
-      other source.  If you cannot answer the question from the summary, simply 
+      You will only answer questions based on the provided summary, not from any
+      other source.  If you cannot answer the question from the summary, simply
       say 'I am not sure about that'.
 
       Do not respond or converse with the user outside answering questions about the
       summary information.
 
-      Important: When responding to queries, do not directly reference the summary 
-      itself. Instead, present the information as if it were common knowledge 
+      Important: When responding to queries, do not directly reference the summary
+      itself. Instead, present the information as if it were common knowledge
       or a well-known fact.
 
-      For example, if the document contains a biography of a person, and you're 
-      asked "What is this about?", you might respond with "This is about the 
+      For example, if the document contains a biography of a person, and you're
+      asked "What is this about?", you might respond with "This is about the
       life and accomplishments of [Person's Name]."
 
-      Here is the summary text to  answer questions. 
+      Here is the summary text to  answer questions.
     `;
 
     const result = await model.generateContent([prompt, masterSource.contents, 'Here is the users question:', query]);
-
     const text = result.response.text();
 
     if (text) {
-      res.status(200).json({ success: true, message: text });
+      res.status(200).json({ data: { reply: text } });
     } else {
-      const msg = `Chat failed siteId: ${siteId}`;
-      log(msg);
-      res.status(500).send({ success: false, message: msg });
+      log(`Chat returned empty text siteId: ${siteId}`);
+      res.status(502).json({ error: { code: 'ai_empty_response', message: 'AI returned no response' } });
     }
   } catch (err) {
     log(`api/chat/${siteId} error: ${(<Error>err)?.message}`);
-    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message } });
   }
 };

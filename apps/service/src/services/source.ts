@@ -1,41 +1,32 @@
+import { IAskSource } from '@/src/models/askSource';
+
 /**
- * Upload a file to the api for saving
- * @param id
- * @param fileblob
- * @returns
+ * Upload a source document for the AI to ground answers on. Returns the
+ * raw HTTP Response so callers can branch on res.ok.
  */
-export const uploadSourceDocument = async (siteId: string, files: FileList) => {
-  const formData = new FormData();
-
+export const uploadSourceDocument = async (
+  siteId: string,
+  files: FileList
+): Promise<Response | null> => {
   const file = files[0];
-  if (!file) {
-    return;
-  }
+  if (!file) return null;
 
+  const formData = new FormData();
   formData.append('upload', file, file.name);
 
-  const res = await fetch(`/api/chat/${siteId}/source`, {
+  return fetch(`/api/chat/${siteId}/source`, {
     method: 'POST',
     body: formData
   });
-
-  const json = await res.json();
-
-  return json;
 };
 
 /**
- * Get all Ask AI sources
- * @param id
- * @param fileblob
- * @returns
+ * List the AI source documents for a site. Returns the array on success,
+ * null on failure (network error, non-2xx, etc.).
  */
-export const getSourceDocuments = async (siteId: string) => {
-  const res = await fetch(`/api/chat/${siteId}/source`, {
-    method: 'GET'
-  });
-
+export const getSourceDocuments = async (siteId: string): Promise<IAskSource[] | null> => {
+  const res = await fetch(`/api/chat/${siteId}/source`, { method: 'GET' });
+  if (!res.ok) return null;
   const json = await res.json();
-
-  return json;
+  return json.data ?? null;
 };

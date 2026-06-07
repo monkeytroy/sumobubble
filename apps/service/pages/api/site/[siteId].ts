@@ -3,9 +3,11 @@ import connectMongo from '@/src/lib/mongoose';
 import { requireSession } from '@/src/lib/require-session';
 import { log } from '@/src/lib/log';
 import Site, { ISite } from '@/src/models/site';
-import { ConfigRes } from '@/src/lib/api-types';
+import { ApiOk, ApiError, ApiEmpty, ErrorCode } from '@/src/lib/api-types';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
+type SiteRes = NextApiResponse<ApiOk<ISite> | ApiError | ApiEmpty>;
+
+export default async function handler(req: NextApiRequest, res: SiteRes) {
   switch (req.method) {
     case 'GET':
       await getSite(req, res);
@@ -17,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       await deleteSite(req, res);
       break;
     default:
-      res.status(405).send({ success: false, message: 'Method unsupported' });
+      res.status(405).json({ error: { code: ErrorCode.MethodNotAllowed, message: 'Method unsupported' } });
   }
 }
 
@@ -26,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
  * inside the authenticated /console/* pages) to render the in-progress
  * config without going through the published S3 file.
  */
-const getSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+const getSite = async (req: NextApiRequest, res: SiteRes) => {
   const session = await requireSession(req, res);
   if (!session) return;
 
@@ -39,12 +41,12 @@ const getSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => 
     const site = await Site.findOne({ _id: siteId, customerEmail: session.email }).select('-__v');
 
     if (site) {
-      res.status(200).json({ success: true, message: 'OK', data: site.toJSON() });
+      res.status(200).json({ data: site.toJSON() });
     } else {
-      res.status(404).json({ success: false, message: 'Site not found' });
+      res.status(404).json({ error: { code: ErrorCode.NotFound, message: 'Site not found' } });
     }
   } catch (err) {
-    res.status(500).json({ success: false, message: `Error ${(<Error>err)?.message}` });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message } });
   }
 };
 
@@ -52,7 +54,7 @@ const getSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => 
  * Update the site on user edits. Customer-scoped: callers can only update
  * sites they own.
  */
-const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+const updateSite = async (req: NextApiRequest, res: SiteRes) => {
   const session = await requireSession(req, res);
   if (!session) return;
 
@@ -86,20 +88,20 @@ const updateSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
 
     if (site) {
       const { __v, ...siteRes } = site.toJSON();
-      res.status(200).json({ success: true, message: 'Updated', data: siteRes });
+      res.status(200).json({ data: siteRes });
     } else {
       log(`Could not update siteId ${siteId} for ${session.email}`);
-      res.status(404).json({ success: false, message: 'Site not found' });
+      res.status(404).json({ error: { code: ErrorCode.NotFound, message: 'Site not found' } });
     }
   } catch (err) {
-    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message } });
   }
 };
 
 /**
  * Delete a site. Customer-scoped: callers can only delete sites they own.
  */
-const deleteSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) => {
+const deleteSite = async (req: NextApiRequest, res: SiteRes) => {
   const session = await requireSession(req, res);
   if (!session) return;
 
@@ -112,11 +114,11 @@ const deleteSite = async (req: NextApiRequest, res: NextApiResponse<ConfigRes>) 
     const deleteRes = await Site.findOneAndDelete({ _id: siteId, customerEmail: session.email });
 
     if (deleteRes) {
-      res.status(200).json({ success: true, message: 'Deleted' });
+      res.status(200).json({});
     } else {
-      res.status(404).json({ success: false, message: 'Site not found' });
+      res.status(404).json({ error: { code: ErrorCode.NotFound, message: 'Site not found' } });
     }
   } catch (err) {
-    res.status(500).send({ success: false, message: `Error ${(<Error>err)?.message}` });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message } });
   }
 };

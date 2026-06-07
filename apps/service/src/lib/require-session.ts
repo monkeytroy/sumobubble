@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
 import type { JWT } from 'next-auth/jwt';
+import { ErrorCode } from '@/src/lib/api-types';
 
 /**
  * Per-route auth gate. Returns the decoded JWT on success. On failure,
@@ -21,7 +22,7 @@ export const requireSession = async (
 ): Promise<AuthedSession | null> => {
   const session = await getToken({ req, secret: process.env.JWT_SECRET });
   if (!session?.sub || !session?.email) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
+    res.status(401).json({ error: { code: ErrorCode.Unauthorized, message: 'Unauthorized' } });
     return null;
   }
   return session as AuthedSession;

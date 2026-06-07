@@ -46,3 +46,7 @@ pnpm-debug.log*
 
 # TinyMCE static assets copied from node_modules by postinstall.js
 apps/service/public/tinymce/
+
+# Dev-only site JSON written by service publish in dev mode and served
+# by apps/wc/dev-server.js at /sites/* (see apps/wc/dev-server.js).
+apps/wc/dev-sites/

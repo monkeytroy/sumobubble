@@ -3,20 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SumoBubble Test</title>
+    <title>SumoBubble — local dev</title>
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 2rem; text-align: center; }
+      a { margin: 0 0.5rem; }
+      .hint { color: #666; font-size: 0.9rem; max-width: 540px; margin: 1rem auto; }
+    </style>
   </head>
   <body>
-    <div style="text-align: center">
+    <h3>SumoBubble — local dev (last-published wins)</h3>
+    <p class="hint">
+      Click <b>Publish</b> in the console, then refresh this page. The wc
+      loads <code>/sites/dev-site.json</code> from <code>dev-server.js</code>,
+      which the service rewrites on every publish (dev mode only).
+    </p>
+    <p>
+      <a href="https://www.google.com" target="_blank">Google</a>
+      <a href="https://www.openai.com" target="_blank">OpenAI</a>
+    </p>
 
-      <h3>Test SumoBubble App Local </h3>
-
-      <a href="www.google.com" target="_blank">Google</a>
-      <a href="www.openai.com" target="_blank">OpenAI</a>
-      
-      <script type="module" src="http://127.0.0.1:3001/sumobubble.js" 
-        id="sumobubble-app-scriptastic"></script>
-      <sumobubble-wc site="674f476b25ad030945ac1ee1"></sumobubble-wc>
-
-    </div>
+    <script type="module" src="/sumobubble.js" id="sumobubble-app-scriptastic"></script>
+    <sumobubble-wc site="dev-site"></sumobubble-wc>
   </body>
 </html>

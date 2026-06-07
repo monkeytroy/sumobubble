@@ -5,9 +5,7 @@ import { ISitesSummary } from '@/src/services/types';
 import mongoose from 'mongoose';
 
 /**
- * Fetch the customer sites by customer id.
- * @param {string} customerId
- * @returns {ISitesSummary[]} the site id and title in array
+ * Fetch the customer sites by email.
  */
 export const fetchCustomerSites = async (email: string): Promise<ISitesSummary[]> => {
   await connectMongo();
@@ -41,113 +39,86 @@ export const fetchCustomerSite = async (
   return site;
 };
 
-/**
- * Add a new site.
- * @param {string} siteTitle the title of the new site to add
- * @returns
- */
-export const addNewSite = async (siteTitle: string) => {
-  const res = await fetch(`/api/site`, {
-    method: 'POST',
-    body: JSON.stringify({ title: siteTitle })
-  });
-
-  const fetchRes = await res.json();
-
-  return fetchRes;
-};
-
-/**
- * Remove a site.
- * @param {string} siteId the id of the site to remove
- * @returns
- */
-export const removeSite = async (siteId: string): Promise<boolean> => {
-  const res = await fetch(`/api/site/${siteId}`, {
-    method: 'DELETE'
-  });
-
-  const json = await res.json();
-
-  if (json.success) {
-    toast.success('Site was removed!', {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
-    return true;
-  }
-
-  toast.error('Ooops! Site was not removed. ' + json.message, {
+const toastErr = (label: string, json: { error?: { message?: string } } | null) => {
+  toast.error(`Ooops! ${label}: ${json?.error?.message || 'Unknown error'}`, {
     position: 'top-center',
     autoClose: 3000,
     hideProgressBar: true
   });
+};
 
+const toastOk = (msg: string) => {
+  toast.success(msg, {
+    position: 'top-center',
+    autoClose: 3000,
+    hideProgressBar: true
+  });
+};
+
+/**
+ * Add a new site. Returns the created site on success, or null on failure.
+ */
+export const addNewSite = async (siteTitle: string): Promise<ISite | null> => {
+  const res = await fetch(`/api/site`, {
+    method: 'POST',
+    body: JSON.stringify({ title: siteTitle })
+  });
+  const json = await res.json();
+
+  if (res.ok) {
+    toastOk('Created!');
+    return json.data;
+  }
+  toastErr('New site was not created', json);
+  return null;
+};
+
+/**
+ * Remove a site. Returns true on success.
+ */
+export const removeSite = async (siteId: string): Promise<boolean> => {
+  const res = await fetch(`/api/site/${siteId}`, { method: 'DELETE' });
+
+  if (res.ok) {
+    toastOk('Site was removed!');
+    return true;
+  }
+
+  const json = await res.json().catch(() => null);
+  toastErr('Site was not removed', json);
   return false;
 };
 
 /**
- * save a site and toast it's success.
- * @param {ISite} config the site to save
- * @returns
+ * Save a site and toast on success/failure. Returns the saved site, or null.
  */
-export const saveSite = async (site: ISite) => {
+export const saveSite = async (site: ISite): Promise<ISite | null> => {
   const res = await fetch(`/api/site/${site._id}`, {
     method: 'PUT',
     body: JSON.stringify(site)
   });
-
   const json = await res.json();
 
-  if (json.success) {
-    toast.success('Saved!', {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
+  if (res.ok) {
+    toastOk('Saved!');
     return json.data;
-  } else {
-    toast.error('Ooops! Could not save!', {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
-    return null;
   }
+  toastErr('Could not save', json);
+  return null;
 };
 
 /**
- * Publish the site which writes the site config json to a
- * file on S3 storage (or spaces)
- * @param {string} siteId id of the site to publish
- * @returns
+ * Publish the site (writes its JSON to S3 storage). Returns the published
+ * site, or null on failure.
  */
-export const publishSite = async (siteId: string) => {
-  const res = await fetch(`/api/site/${siteId}/publish`, {
-    method: 'POST'
-  });
-
+export const publishSite = async (siteId: string): Promise<ISite | null> => {
+  const res = await fetch(`/api/site/${siteId}/publish`, { method: 'POST' });
   const json = await res.json();
 
-  if (json.success) {
-    toast.success('Site was published! Time to deploy!', {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
+  if (res.ok) {
+    toastOk('Site was published! Time to deploy!');
     return json.data;
-  } else {
-    toast.error('Oops... could not publish site!', {
-      position: 'top-center',
-      autoClose: 3000,
-      hideProgressBar: true
-    });
-
-    return null;
   }
+  toastErr('Could not publish site', json);
+  return null;
 };

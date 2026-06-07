@@ -56,13 +56,12 @@ export default function ConfigSummary() {
     setInvalid(enabled && newSummary.length === 0);
   }, [enabled, content, newSummary]);
 
-  // image upload not currently activated
+  // image upload not currently activated (endpoint not implemented)
   const onImagesUpload = (blobInfo: { blob: () => Blob }) =>
     new Promise<string>(async (resolve, reject) => {
-      const res = await saveFile(site?.customerEmail || 'unknown', blobInfo.blob());
-
-      if (res.success) {
-        resolve(res.data.url);
+      const result = await saveFile(site?.customerEmail || 'unknown', blobInfo.blob());
+      if (result) {
+        resolve(result.url);
       } else {
         reject('Oh no!');
       }

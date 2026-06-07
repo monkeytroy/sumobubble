@@ -98,11 +98,11 @@
     const siteId = props.config?._id ?? '';
 
     thinking.value = true;
-    const res = await sendChat(siteId, query);
+    const reply = await sendChat(siteId, query);
     thinking.value = false;
 
-    if (res?.success) {
-      chats.value.push({ user: 'AI', text: res.message });
+    if (reply) {
+      chats.value.push({ user: 'AI', text: reply });
     } else {
       chats.value.push({
         user: 'AI',

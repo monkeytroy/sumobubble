@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import connectMongo from '@/src/lib/mongoose';
 import Customer, { SubscriptionStatus } from '@/src/models/customer';
 import { log } from '@/src/lib/log';
-import { ConfigRes } from '@/src/lib/api-types';
+import { ApiEmpty, ApiError, ErrorCode } from '@/src/lib/api-types';
 
 /**
  * Stripe webhook. Stripe sends signed payloads — we verify the signature
@@ -53,9 +53,9 @@ const readRawBody = async (req: NextApiRequest): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ConfigRes>) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiEmpty | ApiError>) {
   if (req.method !== 'POST') {
-    res.status(405).send({ success: false, message: 'Method unsupported' });
+    res.status(405).json({ error: { code: ErrorCode.MethodNotAllowed, message: 'Method unsupported' } });
     return;
   }
 
@@ -65,12 +65,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   if (!stripeSecret || !webhookSecret) {
     log('subscribe:: STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET not configured');
-    res.status(500).send({ success: false, message: 'Stripe webhook not configured' });
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: 'Stripe webhook not configured' } });
     return;
   }
 
   if (!signature || Array.isArray(signature)) {
-    res.status(400).send({ success: false, message: 'Missing stripe-signature header' });
+    res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'Missing stripe-signature header' } });
     return;
   }
 
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (err) {
     log(`subscribe:: signature verification failed: ${(<Error>err)?.message}`);
-    res.status(400).send({ success: false, message: 'Invalid signature' });
+    res.status(400).json({ error: { code: 'invalid_signature', message: 'Invalid signature' } });
     return;
   }
 
@@ -96,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     ]);
   }
 
-  res.status(200).send({ success: true, message: 'Success' });
+  res.status(200).json({});
 }
 
 /**

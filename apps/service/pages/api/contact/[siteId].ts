@@ -6,7 +6,7 @@ import { verifyRecaptcha } from '@/src/lib/verify-recaptcha';
 import connectMongo from '@/src/lib/mongoose';
 import Site, { IContactCategory } from '@/src/models/site';
 import { log } from '@/src/lib/log';
-import { IApiRes } from '@/src/lib/api-types';
+import { ApiEmpty, ApiError, ErrorCode } from '@/src/lib/api-types';
 
 const cors = Cors({
   methods: ['POST', 'GET', 'HEAD']
@@ -23,100 +23,74 @@ type ContactData = {
   token: string;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<IApiRes>) {
+type ContactRes = NextApiResponse<ApiEmpty | ApiError>;
+
+export default async function handler(req: NextApiRequest, res: ContactRes) {
   await apiMiddleware(req, res, cors);
 
   if (req.method !== 'POST') {
-    res.status(405).send({ success: false, message: 'Only POST requests allowed' });
-    return;
+    return res.status(405).json({ error: { code: ErrorCode.MethodNotAllowed, message: 'Only POST requests allowed' } });
   }
 
-  let resultStatus = 400;
-
-  const result = {
-    success: false,
-    message: 'Could not send message'
-  };
-
   try {
-    const { section, category, email, name, phone, moreInfo, message, token }: ContactData = JSON.parse(req.body);
+    const { section, category, email, name, phone, message, token }: ContactData = JSON.parse(req.body);
 
     // Verify the reCAPTCHA token with Google BEFORE doing any work
     // (DB lookups, sending mail). The wc executes recaptcha with
     // action: 'submit' — see apps/wc/src/composables/useRecaptcha.ts.
     const human = await verifyRecaptcha(token, 'submit');
     if (!human) {
-      res.status(403).json({ success: false, message: 'reCAPTCHA verification failed' });
-      return;
+      return res.status(403).json({ error: { code: 'recaptcha_failed', message: 'reCAPTCHA verification failed' } });
     }
 
-    if (section && email && name && message && token) {
-      // get the config.
-      await connectMongo();
-      const { siteId } = req.query;
-      const site = await Site.findById(siteId);
-      log(`Site: ${JSON.stringify(site)}`);
+    if (!(section && email && name && message && token)) {
+      return res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'Bad contact data' } });
+    }
 
-      if (site) {
-        const sectionRec = site.sections.get(section);
-        log(`Section: ${sectionRec}`);
+    await connectMongo();
+    const { siteId } = req.query;
+    const site = await Site.findById(siteId);
 
-        if (sectionRec) {
-          // setup email message
-          let bodyText = `<p><b>The following content was entered by an SumoBubble user on your website</b></p><b>Name: ${name}  |  Email: ${email}  |  Phone: ${
-            phone || 'Not Provided'
-          }</b> <br/> <hr/><br/>`;
-          bodyText += `<p>${message}</p>`;
+    if (!site) {
+      return res.status(404).json({ error: { code: ErrorCode.NotFound, message: 'Site not found' } });
+    }
 
-          const mailBody = {
-            emailTo: '',
-            name,
-            subject: `SumoBubble contact from ${name}`,
-            body: bodyText
-          };
+    const sectionRec = site.sections.get(section);
+    if (!sectionRec) {
+      return res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'Invalid section for message destination' } });
+    }
 
-          // if category was provided.. get contact info.
-          if (category) {
-            const categoryRec = sectionRec?.props.categories.find(
-              (val: IContactCategory) => val.title.toLowerCase() == category.toLowerCase()
-            );
-            log(`Category: ${JSON.stringify(categoryRec)}`);
-
-            if (categoryRec) {
-              mailBody.emailTo = categoryRec.email;
-              await mailIt(mailBody);
-
-              resultStatus = 200;
-              result.success = true;
-              result.message = 'Submitted';
-            }
-          } else {
-            const emailRec = sectionRec?.props.email;
-
-            if (emailRec && emailRec[0]) {
-              mailBody.emailTo = emailRec[0];
-              await mailIt(mailBody);
-
-              resultStatus = 200;
-              result.success = true;
-              result.message = 'Submitted';
-            } else {
-              result.message = 'No email for selected section';
-            }
-          }
-        } else {
-          result.message = 'Invalid section for message destination';
-        }
-      } else {
-        result.message = 'Invalid customer';
-      }
+    // Resolve the destination email (per-category override, falling back
+    // to the section's default email).
+    let emailTo = '';
+    if (category) {
+      const categoryRec = sectionRec.props?.categories?.find(
+        (val: IContactCategory) => val.title.toLowerCase() == category.toLowerCase()
+      );
+      emailTo = categoryRec?.email || '';
     } else {
-      result.message = 'Bad contact data';
+      emailTo = sectionRec.props?.email?.[0] || '';
     }
-  } catch (err) {
-    resultStatus = 500;
-    result.message = `Error ${(<Error>err)?.message}`;
-  }
 
-  res.status(resultStatus).json(result);
+    if (!emailTo) {
+      return res.status(400).json({ error: { code: ErrorCode.ValidationError, message: 'No email destination configured for this section' } });
+    }
+
+    const bodyText =
+      `<p><b>The following content was entered by an SumoBubble user on your website</b></p>` +
+      `<b>Name: ${name}  |  Email: ${email}  |  Phone: ${phone || 'Not Provided'}</b> <br/><hr/><br/>` +
+      `<p>${message}</p>`;
+
+    await mailIt({
+      emailTo,
+      name,
+      subject: `SumoBubble contact from ${name}`,
+      body: bodyText
+    });
+
+    res.status(200).json({});
+  } catch (err) {
+    log(`api/contact error: ${(<Error>err)?.message}`);
+    res.status(500).json({ error: { code: ErrorCode.InternalError, message: (<Error>err)?.message } });
+  }
 }
