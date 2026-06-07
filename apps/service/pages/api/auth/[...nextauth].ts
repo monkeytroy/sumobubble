@@ -58,13 +58,13 @@ export const authOptions = {
     }
   },
   logger: {
-    error(code: string, metadata: any) {
+    error(code: string, metadata: unknown) {
       console.error(code, metadata);
     },
     warn(code: string) {
       console.warn(code);
     },
-    debug(code: string, metadata: any) {
+    debug(code: string, metadata: unknown) {
       console.debug(code, metadata);
     }
   }

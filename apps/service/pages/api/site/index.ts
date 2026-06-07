@@ -7,6 +7,11 @@ import { ApiOk, ApiError, ErrorCode } from '@/src/lib/api-types';
 
 type SiteRes = NextApiResponse<ApiOk<ISite> | ApiError>;
 
+// Free-tier limit on sites per customer. Replace with a per-customer
+// limit derived from the subscription tier when subscription handling
+// is wired up (see Customer.subscription).
+const SITE_LIMIT = 2;
+
 export default async function handler(req: NextApiRequest, res: SiteRes) {
   switch (req.method) {
     case 'POST':
@@ -32,9 +37,8 @@ const createSite = async (req: NextApiRequest, res: SiteRes) => {
       return;
     }
 
-    // TODO check subscription limits
     const total = await Site.find({ customerEmail: session.email }).countDocuments();
-    if (total >= 2) {
+    if (total >= SITE_LIMIT) {
       res.status(409).json({ error: { code: 'site_limit_reached', message: 'Already at the max number of sites allowed.' } });
       return;
     }

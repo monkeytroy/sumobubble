@@ -29,7 +29,10 @@ export default function ConfigSummary() {
   const [newSummary, setNewSummary] = useState('');
   const [invalid, setInvalid] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(true);
-  const editorRef = useRef({} as any);
+  // Holds the TinyMCE editor instance once init fires. Typed `unknown`
+  // because nothing currently reads it; narrow at the read site if/when
+  // we start calling editor methods.
+  const editorRef = useRef<unknown>(null);
 
   // reset to site state
   const reset = useCallback(() => {

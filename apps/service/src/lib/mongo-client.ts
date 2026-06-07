@@ -1,10 +1,11 @@
 import { MongoClient } from "mongodb";
 
-// deal with typescript.
+// In dev, Next's HMR re-imports modules — we stash the connect promise
+// on globalThis so the same MongoClient is reused across reloads instead
+// of opening a new connection on every code edit.
 declare global {
-  var _mongoClientPromise: any;
+  var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
-globalThis._mongoClientPromise = null;
 
 if (!process.env.MONGO_CONNECT) {
   throw new Error('Invalid/Missing environment variable: "MONGO_CONNECT"');
