@@ -217,7 +217,7 @@ export default function ConfigSetup(props: IAppProps) {
                       <CopyButton label="Copy tag name" value="sumobubble-wc" />
                     </span>
                   </li>
-                  <li>4. Select the element option Set Attributes, then add a new attribute.</li>
+                  <li>4. Select the Custom Element option - Set Attributes. Then add a new attribute.</li>
                   <li>
                     5. Make the Attribute Name: <b>site</b> and the Value:
                     <span className="inline-flex items-center gap-2 ml-2 select-text break-all">
