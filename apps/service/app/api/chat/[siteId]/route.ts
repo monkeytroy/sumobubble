@@ -104,6 +104,21 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   } catch (err) {
     const e = err as Error;
     log(`${tag} FAILED at step=${step} totalMs=${Date.now() - t0} msg="${e?.message}"`, e?.stack);
+
+    if (step === 'gemini-call') {
+      const msg = e?.message ?? '';
+      if (msg.includes('[429') || /quota/i.test(msg) || /rate limit/i.test(msg)) {
+        return withCors(
+          apiOk({ reply: "I'm getting a lot of questions right now and need a quick break. Please try again in a minute or two." })
+        );
+      }
+      if (msg.includes('[503') || /overloaded/i.test(msg)) {
+        return withCors(
+          apiOk({ reply: "The assistant is briefly unavailable. Please try again shortly." })
+        );
+      }
+    }
+
     return withCors(apiError(ErrorCode.InternalError, e?.message || 'Chat request failed', 500));
   }
 }
