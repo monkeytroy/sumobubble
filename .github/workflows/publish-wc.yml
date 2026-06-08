@@ -44,7 +44,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
         run: |
           aws s3 cp apps/wc/dist/sumobubble.js \
-            s3://${{ vars.SPACES_BUCKET }}/wc/sumobubble.js \
+            s3://${{ vars.SPACES_BUCKET }}/sumobubble.js \
             --endpoint-url ${{ vars.SPACES_ENDPOINT }} \
             --acl public-read \
             --content-type "application/javascript; charset=utf-8" \
