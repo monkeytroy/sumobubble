@@ -25,6 +25,17 @@ jobs:
 
       - run: pnpm --filter sumobubble-app build
 
+      - name: Verify Spaces config
+        run: |
+          : "${SPACES_BUCKET:?missing repo variable SPACES_BUCKET}"
+          : "${SPACES_ENDPOINT:?missing repo variable SPACES_ENDPOINT}"
+          : "${SPACES_REGION:?missing repo variable SPACES_REGION}"
+          echo "bucket=$SPACES_BUCKET region=$SPACES_REGION endpoint=$SPACES_ENDPOINT"
+        env:
+          SPACES_BUCKET: ${{ vars.SPACES_BUCKET }}
+          SPACES_ENDPOINT: ${{ vars.SPACES_ENDPOINT }}
+          SPACES_REGION: ${{ vars.SPACES_REGION }}
+
       - name: Upload sumobubble.js to Spaces
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_KEY }}
