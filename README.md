@@ -14,11 +14,35 @@ Monorepo for the SumoBubble chat bubble tool.
 - [pnpm](https://pnpm.io/) 11+
 - [Docker](https://www.docker.com/) (for the local Mongo + Redis)
 
+### Third-party accounts
+
+The service is wired to several external providers. Only Auth0 is required
+to boot; the rest gate individual features and can be left blank.
+
+| Service | Used for | Required? |
+| --- | --- | --- |
+| [Auth0](https://auth0.com) | sign-in | yes — free tier covers up to 7k users |
+| [MongoDB](https://www.mongodb.com) | data | local via docker, or [Atlas](https://www.mongodb.com/atlas) free M0 in prod |
+| [Google AI Studio](https://aistudio.google.com) | Ask AI (Gemini) | optional, free tier available |
+| [Stripe](https://stripe.com) | subscriptions | optional |
+| [reCAPTCHA v3](https://www.google.com/recaptcha/admin) | contact-form spam | optional |
+| SMTP (e.g. Gmail App Password) | contact-form delivery | optional |
+| S3-compatible bucket (e.g. DigitalOcean Spaces, AWS S3) | publishing site JSON | only in production — dev writes to disk |
+
 ## Setup
 
 ```bash
 pnpm install
 ```
+
+Copy each app's `.env.example` to `.env` and fill in:
+
+```bash
+cp apps/service/.env.example apps/service/.env
+cp apps/wc/.env.example apps/wc/.env
+```
+
+See the comments in each example file for what each variable does.
 
 ## Run everything
 
@@ -64,6 +88,10 @@ pnpm --filter sumobubble-service <script>
 pnpm --filter sumobubble-app <script>
 pnpm --filter @sumobubble/infra <script>
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## History
 
