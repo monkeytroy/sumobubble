@@ -53,16 +53,12 @@ export const sendContact = async (
 };
 
 const getServiceBase = (): string => {
-  // The wc's API base is whatever origin the bundle was loaded from
-  // (the host page's <script src=...> attribute). In dev we hit the
-  // local Next service directly.
   if (import.meta.env.MODE === 'development') {
     return 'http://localhost:3000/';
   }
-  const scriptTag = document.querySelector<HTMLScriptElement>('#sumobubble-app-scriptastic');
-  const src = scriptTag?.src ?? '';
-  const match = src.match(/http[s]?:\/\/.+?\//);
-  return match ? match[0] : '/';
+  const url = import.meta.env.VITE_API_BASE_URL;
+  if (!url) return '/';
+  return url.endsWith('/') ? url : `${url}/`;
 };
 
 /**

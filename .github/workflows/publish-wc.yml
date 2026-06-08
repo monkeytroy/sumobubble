@@ -24,7 +24,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile --filter sumobubble-app...
 
-      - run: pnpm --filter sumobubble-app build
+      - name: Build wc
+        env:
+          VITE_API_BASE_URL: ${{ vars.SERVICE_API_URL }}
+        run: |
+          : "${VITE_API_BASE_URL:?missing repo variable SERVICE_API_URL (e.g. https://sumobubble-service.vercel.app)}"
+          pnpm --filter sumobubble-app build
 
       - name: Verify Spaces config
         run: |
