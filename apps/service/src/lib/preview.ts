@@ -1,4 +1,4 @@
-import { ISite } from '@/src/models/site';
+import type { ISite } from '@/src/models/site.types';
 
 /**
  * Updates the on-page preview with a new site configuration

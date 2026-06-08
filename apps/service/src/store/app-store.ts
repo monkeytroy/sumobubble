@@ -1,5 +1,5 @@
-import { IAskSource } from '@/src/models/askSource';
-import { ICustomer } from '@/src/models/customer';
+import type { IAskSource } from '@/src/models/askSource.types';
+import type { ICustomer } from '@/src/models/customer.types';
 import { preview } from '@/src/lib/preview';
 import { addNewSite, removeSite, saveSite } from '@/src/services/site';
 import { getSourceDocuments } from '@/src/services/source';
@@ -69,10 +69,12 @@ export const useAppStore = create<IAppState>((set, get) => ({
   setSite: (site: ISite) => {
     // update the preview with the loaded config
     preview(site);
+    // put the site on the store FIRST — refreshAskSources reads get().site
+    // to know which siteId to query, so it has to see the new site, not the
+    // previous (possibly null) one.
+    set(() => ({ site: { ...site } }));
     // load the ask documents
     get().refreshAskSources();
-    // put the site on the store.
-    set(() => ({ site: { ...site } }));
   },
 
   updateSite: async (site: ISite) => {

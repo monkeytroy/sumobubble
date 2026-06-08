@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { sections } from '@/src/components/console/sections/sections';
 import { useAppStore } from '@/src/store/app-store';
 import { publishSite } from '@/src/services/site';
-import { SubscriptionStatus } from '@/src/models/customer';
+import { SubscriptionStatus } from '@/src/models/customer.types';
 import { ISection } from './types';
 import { combineClassnames } from '@/src/lib/classnames';
 

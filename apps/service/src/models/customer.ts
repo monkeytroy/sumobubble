@@ -1,39 +1,8 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, type Model } from 'mongoose';
+import type { ICustomer } from './customer.types';
 
-/**
- * Though exported, these are highly germane to the model
- * though could split to a customer.types.ts file.
- */
-
-export enum Membership {
-  Preview = 'preview',
-  Trial = 'trial',
-  Basic = 'basic',
-  Plus = 'plus'
-}
-
-export enum SubscriptionStatus {
-  Active = 'active',
-  Inactive = 'inactive',
-  Incomplete = 'incomplete',
-  Cancelled = 'cancelled'
-}
-
-export interface ICustomer {
-  email: string;
-  customerId: string;
-  name: string;
-  subscription: {
-    id?: string;
-    customerId?: string;
-    status: SubscriptionStatus;
-    productId?: string;
-    metadata?: {
-      chatbot?: boolean;
-    };
-  };
-  membership: Membership;
-}
+export type { ICustomer } from './customer.types';
+export { Membership, SubscriptionStatus } from './customer.types';
 
 const customerSchema = new Schema<ICustomer>({
   email: { type: String, required: true, index: true, unique: true },
@@ -49,6 +18,7 @@ const customerSchema = new Schema<ICustomer>({
   membership: String
 });
 
-const Customer = models?.Customer || model('Customer', customerSchema, 'customers');
+const Customer: Model<ICustomer> =
+  (models?.Customer as Model<ICustomer>) || model<ICustomer>('Customer', customerSchema, 'customers');
 
 export default Customer;

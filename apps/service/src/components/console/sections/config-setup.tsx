@@ -4,7 +4,7 @@ import { ISection } from '@/src/components/console/types';
 import { SetStateAction, useCallback, useEffect, useState } from 'react';
 import { TwitterPicker } from 'react-color';
 import { ConsoleBody } from '@/src/components/console/console-body';
-import { SubscriptionStatus } from '@/src/models/customer';
+import { SubscriptionStatus } from '@/src/models/customer.types';
 import { IAppProps } from '@/src/services/types';
 
 import ConsolePricing from '@/src/components/console/console-pricing';

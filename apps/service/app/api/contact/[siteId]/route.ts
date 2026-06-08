@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { mailIt } from '@/src/services/mail';
 import { verifyRecaptcha } from '@/src/lib/verify-recaptcha';
 import connectMongo from '@/src/lib/mongoose';
-import Site, { IContactCategory } from '@/src/models/site';
+import Site, { IContactCategory, ISiteSection } from '@/src/models/site';
 import { log } from '@/src/lib/log';
 import { apiEmpty, apiError, corsPreflight, withCors } from '@/src/lib/api-route';
 import { ErrorCode } from '@/src/lib/api-types';
@@ -44,7 +44,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
     if (!site) return withCors(apiError(ErrorCode.NotFound, 'Site not found', 404));
 
-    const sectionRec = site.sections.get(section);
+    // Mongoose stores `sections` as a Map at runtime (schema: type: Map),
+    // even though the ISite interface types it as a plain object for JSON
+    // consumers. Use Map access here against the raw mongoose doc.
+    const sectionRec = (site.sections as unknown as Map<string, ISiteSection>).get(section);
     if (!sectionRec) {
       return withCors(apiError(ErrorCode.ValidationError, 'Invalid section for message destination', 400));
     }

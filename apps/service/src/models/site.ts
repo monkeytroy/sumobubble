@@ -1,65 +1,7 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, type Model } from 'mongoose';
+import type { ISite, ISiteSection, IContactCategory } from './site.types';
 
-/**
- * Though exported, these are highly germane to the model
- * though could split to a customer.types.ts file.
- */
-
-export interface ISite {
-  _id?: string;
-  customerId: string;
-  customerEmail: string;
-  title: string;
-  button?: string;
-  theme?: {
-    primary?: string;
-  };
-  social?: {
-    youtube?: string;
-  };
-  summary: {
-    enabled: boolean;
-    content: string;
-    special?: string;
-  };
-  chatbot: {
-    enabled: boolean;
-    sites?: IChatSite[];
-    chatbotId?: string;
-  };
-  sections: ISiteSections;
-}
-
-export interface ISiteSections {
-  [name: string]: ISiteSection;
-}
-
-interface IChatSite {
-  url: string;
-  active: boolean;
-  progress: number;
-  message: string;
-}
-
-export interface IContactCategory {
-  title: string;
-  email: string;
-}
-
-export interface ISiteSection {
-  title?: string;
-  enabled: boolean;
-  content: string;
-  url?: string;
-  props?: {
-    verseRef?: string;
-    autoFill?: boolean;
-    translation?: string;
-    email?: string[];
-    copyright?: string;
-    categories?: IContactCategory[];
-  };
-}
+export type { ISite, ISiteSection, ISiteSections, IContactCategory, IChatSite } from './site.types';
 
 const sectionSchema = new Schema<ISiteSection>({
   title: { type: String, required: false },
@@ -129,6 +71,6 @@ const siteSchema = new Schema<ISite>({
   }
 });
 
-const Site = models?.Site || model('Site', siteSchema, 'sites');
+const Site: Model<ISite> = (models?.Site as Model<ISite>) || model<ISite>('Site', siteSchema, 'sites');
 
 export default Site;

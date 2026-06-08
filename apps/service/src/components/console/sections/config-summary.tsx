@@ -132,6 +132,7 @@ export default function ConfigSummary() {
               <Editor
                 id="summaryEditor"
                 tinymceScriptSrc={'/tinymce/tinymce.min.js'}
+                licenseKey="gpl"
                 onInit={(evt, editor) => {
                   setSummaryLoading(false);
                   editorRef.current = editor;
@@ -140,6 +141,10 @@ export default function ConfigSummary() {
                 onEditorChange={(newValue) => setNewSummary(newValue)}
                 //onDirty={() => setDirty(true)}  // content changed.. needed?
                 init={{
+                  // TinyMCE 8 requires explicit license opt-in. We pass
+                  // 'gpl' via the wrapper's `licenseKey` prop (above) —
+                  // tinymce-react v6 overrides any license_key set inside
+                  // `init`, so the prop is the right place.
                   images_upload_handler: onImagesUpload,
                   resize: false,
                   height: '100%',

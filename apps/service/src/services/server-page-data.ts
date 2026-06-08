@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/src/lib/auth-options';
 import { log } from '@/src/lib/log';
 import { fetchOrCreateCustomer } from './customer';
-import { fetchCustomerSite, fetchCustomerSites } from './site';
+import { fetchCustomerSite, fetchCustomerSites } from './site-db';
 import { ICustomer } from '@/src/models/customer';
 import { ISite } from '@/src/models/site';
 import { ISitesSummary } from './types';

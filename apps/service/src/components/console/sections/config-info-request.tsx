@@ -3,7 +3,7 @@ import { ExclamationCircleIcon, MinusCircleIcon, StarIcon } from '@heroicons/rea
 import { useState, useEffect, useCallback } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
-import { IContactCategory, ISiteSection } from '@/src/models/site';
+import type { IContactCategory, ISiteSection } from '@/src/models/site.types';
 
 export const section: ISection = {
   name: 'inforequest',

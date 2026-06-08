@@ -2,9 +2,9 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useAppStore } from '@/src/store/app-store';
-import { ICustomer } from '@/src/models/customer';
-import { ISite } from '@/src/models/site';
-import { ISitesSummary } from '@/src/services/types';
+import type { ICustomer } from '@/src/models/customer.types';
+import type { ISite } from '@/src/models/site.types';
+import type { ISitesSummary } from '@/src/services/types';
 
 interface Props {
   customer?: ICustomer | null;

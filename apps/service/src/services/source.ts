@@ -1,4 +1,4 @@
-import { IAskSource } from '@/src/models/askSource';
+import type { IAskSource } from '@/src/models/askSource.types';
 
 /**
  * Upload a source document for the AI to ground answers on. Returns the
@@ -29,4 +29,14 @@ export const getSourceDocuments = async (siteId: string): Promise<IAskSource[] |
   if (!res.ok) return null;
   const json = await res.json();
   return json.data ?? null;
+};
+
+/**
+ * Delete a source document by id. Returns true on success.
+ */
+export const deleteSourceDocument = async (siteId: string, sourceId: string): Promise<boolean> => {
+  const res = await fetch(`/api/chat/${siteId}/source?id=${encodeURIComponent(sourceId)}`, {
+    method: 'DELETE'
+  });
+  return res.ok;
 };

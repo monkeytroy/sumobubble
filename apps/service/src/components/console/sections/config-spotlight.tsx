@@ -3,7 +3,7 @@ import { ExclamationCircleIcon, TvIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
-import { ISiteSection } from '@/src/models/site';
+import type { ISiteSection } from '@/src/models/site.types';
 
 export const section: ISection = {
   name: 'spotlight',

@@ -32,6 +32,34 @@ const isTextLike = (mime: string, filename: string): boolean => {
   return TEXT_LIKE_EXTS.some((ext) => lower.endsWith(ext));
 };
 
+export async function DELETE(req: NextRequest, ctx: Ctx) {
+  const session = await requireSession(req);
+  if (session instanceof NextResponse) return session;
+
+  const { siteId } = await ctx.params;
+  const id = req.nextUrl.searchParams.get('id');
+  log(`DELETE api/chat/${siteId}/source?id=${id}`);
+
+  if (!siteId) return apiError(ErrorCode.ValidationError, 'Missing site id', 400);
+  if (!id) return apiError(ErrorCode.ValidationError, 'Missing source id', 400);
+
+  try {
+    await connectMongo();
+
+    const ownsSite = await Site.exists({ _id: siteId, customerEmail: session.email });
+    if (!ownsSite) return apiError(ErrorCode.NotFound, 'Site not found', 404);
+
+    // Scope the delete by siteId too — defence-in-depth against a caller
+    // who owns site A trying to delete a source under site B by id.
+    const deleted = await AskSource.findOneAndDelete({ _id: id, siteId, isMaster: false });
+    if (!deleted) return apiError(ErrorCode.NotFound, 'Source not found', 404);
+
+    return apiEmpty();
+  } catch (err) {
+    return apiError(ErrorCode.InternalError, (<Error>err)?.message, 500);
+  }
+}
+
 export async function GET(req: NextRequest, ctx: Ctx) {
   const session = await requireSession(req);
   if (session instanceof NextResponse) return session;
@@ -79,14 +107,24 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const entries = form.getAll('upload');
     const uploads = entries.filter((e): e is File => e instanceof File);
 
+    log(`upload: received ${uploads.length} file(s)`);
+
     if (uploads.length === 0) {
       return apiError(ErrorCode.ValidationError, 'Failed to get upload file', 400);
     }
 
+    let savedCount = 0;
     for (const file of uploads) {
       const originalFilename = file.name;
-      if (!originalFilename) continue;
-      if (!isTextLike(file.type, originalFilename)) continue;
+      log(`upload: file=${originalFilename} type=${file.type} size=${file.size}`);
+      if (!originalFilename) {
+        log('  -> skipped: no filename');
+        continue;
+      }
+      if (!isTextLike(file.type, originalFilename)) {
+        log(`  -> skipped: not text-like (mime=${file.type})`);
+        continue;
+      }
 
       const contents = await file.text();
 
@@ -98,12 +136,19 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         contents
       };
 
-      await AskSource.findOneAndUpdate(
-        { origFilename: originalFilename },
+      // Scope the upsert by site too — without siteId in the filter, the
+      // same filename uploaded to a different site would steal/move the
+      // existing record instead of creating a new one.
+      const saved = await AskSource.findOneAndUpdate(
+        { siteId, origFilename: originalFilename, isMaster: false },
         askSource,
         { new: true, upsert: true }
       );
+      log(`  -> saved id=${saved?._id} siteId=${saved?.siteId}`);
+      savedCount++;
     }
+
+    log(`upload: saved ${savedCount}/${uploads.length}`);
 
     // Regenerate the master source doc and store.
     const sources = await AskSource.find({ siteId });

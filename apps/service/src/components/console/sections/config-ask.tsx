@@ -1,12 +1,12 @@
 import { useAppStore } from '@/src/store/app-store';
-import { ChatBubbleOvalLeftIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleOvalLeftIcon, InformationCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState, useEffect, useCallback } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
-import { SubscriptionStatus } from '@/src/models/customer';
+import { SubscriptionStatus } from '@/src/models/customer.types';
 import ConsolePricing from '@/src/components/console/console-pricing';
 import { IAppProps } from '@/src/services/types';
-import { uploadSourceDocument } from '@/src/services/source';
+import { deleteSourceDocument, uploadSourceDocument } from '@/src/services/source';
 
 export const section: ISection = {
   name: 'chat',
@@ -73,6 +73,14 @@ export default function ConfigChatbot(props: IAppProps) {
       // todo repace with async update of file status
       refreshAskSources();
     }
+  };
+
+  const onDeleteSource = async (sourceId: string | undefined, filename: string | undefined) => {
+    if (!sourceId || !site?._id) return;
+    if (!window.confirm(`Delete "${filename || 'this document'}"? This cannot be undone.`)) return;
+
+    const ok = await deleteSourceDocument(site._id, sourceId);
+    if (ok) refreshAskSources();
   };
 
   return (
@@ -176,8 +184,17 @@ export default function ConfigChatbot(props: IAppProps) {
               <div className="text-gray-600">
                 {askSources &&
                   askSources.map((v) => (
-                    <div key={v._id} className="py-2 border-t border-gray-300">
-                      {v.origFilename}
+                    <div
+                      key={v._id}
+                      className="py-2 border-t border-gray-300 flex items-center justify-between gap-3">
+                      <span className="truncate">{v.origFilename}</span>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${v.origFilename}`}
+                        onClick={() => onDeleteSource(v._id, v.origFilename)}
+                        className="shrink-0 text-gray-500 hover:text-red-600 p-1 bg-transparent border-0 cursor-pointer">
+                        <TrashIcon className="w-5 h-auto" />
+                      </button>
                     </div>
                   ))}
               </div>

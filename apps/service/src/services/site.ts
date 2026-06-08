@@ -1,43 +1,9 @@
-import Site, { ISite } from '@/src/models/site';
 import { toast } from 'react-toastify';
-import connectMongo from '@/src/lib/mongoose';
-import { ISitesSummary } from '@/src/services/types';
-import mongoose from 'mongoose';
+import type { ISite } from '@/src/models/site.types';
 
-/**
- * Fetch the customer sites by email.
- */
-export const fetchCustomerSites = async (email: string): Promise<ISitesSummary[]> => {
-  await connectMongo();
-
-  const sites: ISitesSummary[] = await Site.find({ customerEmail: email });
-  const sitesRes = sites.map((val) => {
-    return {
-      _id: val._id.toString(),
-      title: val.title
-    };
-  });
-  return sitesRes;
-};
-
-/**
- * Fetch a site, scoped to the caller's email. Returns null if no site with
- * the given id is owned by that email — same shape as "not found" so a
- * mis-typed URL and a cross-account access attempt look identical to the
- * caller (no information leak about whether the id exists for someone else).
- */
-export const fetchCustomerSite = async (
-  siteId: string,
-  customerEmail: string
-): Promise<ISite | null> => {
-  if (!siteId || !mongoose.isValidObjectId(siteId) || !customerEmail) {
-    return null;
-  }
-
-  await connectMongo();
-  const site = await Site.findOne({ _id: siteId, customerEmail }).select('-__v');
-  return site;
-};
+// Client-side HTTP helpers for the site API. Server-side DB calls live in
+// site-db.ts so importing this module doesn't drag mongoose into the
+// client bundle.
 
 const toastErr = (label: string, json: { error?: { message?: string } } | null) => {
   toast.error(`Ooops! ${label}: ${json?.error?.message || 'Unknown error'}`, {

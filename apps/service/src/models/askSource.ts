@@ -1,18 +1,7 @@
-import { Schema, model, models } from 'mongoose';
+import { Schema, model, models, type Model } from 'mongoose';
+import type { IAskSource } from './askSource.types';
 
-/**
- * Though exported, these are highly germane to the model
- * though could split to a customer.types.ts file.
- */
-
-export interface IAskSource {
-  _id?: string;
-  customerId: string;
-  siteId: string;
-  origFilename?: string;
-  isMaster: boolean;
-  contents: string;
-}
+export type { IAskSource } from './askSource.types';
 
 const askSourceSchema = new Schema<IAskSource>({
   customerId: { type: String, required: true },
@@ -22,6 +11,7 @@ const askSourceSchema = new Schema<IAskSource>({
   contents: { type: String, required: true }
 });
 
-const AskSource = models?.AskSource || model('AskSource', askSourceSchema, 'asksources');
+const AskSource: Model<IAskSource> =
+  (models?.AskSource as Model<IAskSource>) || model<IAskSource>('AskSource', askSourceSchema, 'asksources');
 
 export default AskSource;

@@ -1,5 +1,5 @@
-import { ICustomer } from '@/src/models/customer';
-import { ISite } from '@/src/models/site';
+import type { ICustomer } from '@/src/models/customer.types';
+import type { ISite } from '@/src/models/site.types';
 
 export interface Email {
   emailTo: string;

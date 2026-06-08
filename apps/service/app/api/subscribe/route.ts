@@ -136,7 +136,7 @@ const updateSubscription = async (eventObject: StripeEventObjectBase) => {
     const rec = await Customer.findOne({ 'subscription.customerId': customerId });
     if (rec) {
       rec.subscription.id = subscriptionId;
-      rec.subscription.status = sub.status;
+      rec.subscription.status = sub.status as SubscriptionStatus;
       rec.subscription.productId = productId;
       rec.subscription.metadata = { chatbot };
       await rec.save();
