@@ -1,6 +1,6 @@
 import { Session, User } from 'next-auth';
 import clientPromise from '@/src/lib/mongo-client';
-import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
+import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import { log } from '@/src/lib/log';
 import type { JWT } from 'next-auth/jwt';
 import Auth0Provider from 'next-auth/providers/auth0';

@@ -1,6 +1,6 @@
 import { useAppStore } from '@/src/store/app-store';
 import { ExclamationCircleIcon, TvIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
 import type { ISiteSection } from '@/src/models/site.types';
@@ -22,40 +22,38 @@ export default function ConfigSpotlight() {
 
   const thisSection: ISiteSection | undefined = site?.sections[section.name];
 
-  // setup local state for editing.
-  const [enabled, setEnabled] = useState(false);
-  const [content, setContent] = useState('');
-  const [url, setUrl] = useState('');
+  const [enabled, setEnabled] = useState(!!thisSection?.enabled);
+  const [content, setContent] = useState(thisSection?.content || '');
+  const [url, setUrl] = useState(thisSection?.url || '');
 
-  // local component state
-  const [invalid, setInvalid] = useState(false);
-
-  // reset to site state
-  const reset = useCallback(() => {
+  const [lastSeenId, setLastSeenId] = useState(site?._id);
+  if (site && site._id !== lastSeenId) {
+    setLastSeenId(site._id);
     setEnabled(!!thisSection?.enabled);
     setContent(thisSection?.content || '');
     setUrl(thisSection?.url || '');
-  }, [thisSection]);
+  }
 
-  // reset to modified site upon changes from state
-  useEffect(() => {
-    reset();
-  }, [reset, site]);
+  const YT_REGEX = /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+$/;
+  const invalid = enabled && !YT_REGEX.test(url);
 
-  useEffect(() => {
-    if (!enabled) {
-      setUrl('');
-    }
-  }, [enabled]);
+  const reset = () => {
+    setEnabled(!!thisSection?.enabled);
+    setContent(thisSection?.content || '');
+    setUrl(thisSection?.url || '');
+  };
 
-  // save the new site info
+  const onEnabledChange = (checked: boolean) => {
+    setEnabled(checked);
+    if (!checked) setUrl('');
+  };
+
   const onSave = async () => {
     if (enabled && invalid) {
       return;
     }
 
     if (site) {
-      // create the new section
       const newSection: ISiteSection = {
         enabled,
         content,
@@ -63,7 +61,6 @@ export default function ConfigSpotlight() {
         props: {}
       };
 
-      // save the new site
       await updateSite({
         ...site,
         sections: {
@@ -73,13 +70,6 @@ export default function ConfigSpotlight() {
       });
     }
   };
-
-  // validation.  effect on values. Set invalid.
-  useEffect(() => {
-    var regExp = /^(http(s)?:\/\/)?((w){3}.)?youtu(be|.be)?(\.com)?\/.+$/;
-    // only one for now
-    setInvalid(enabled && !regExp.test(url));
-  }, [url, enabled]);
 
   return (
     <ConsoleBody
@@ -97,7 +87,7 @@ export default function ConfigSpotlight() {
               name="spotlightEnabled"
               type="checkbox"
               checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
+              onChange={(e) => onEnabledChange(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
             />
           </div>

@@ -1,6 +1,6 @@
 import { useAppStore } from '@/src/store/app-store';
 import { ExclamationCircleIcon, MinusCircleIcon, StarIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
 import type { IContactCategory, ISiteSection } from '@/src/models/site.types';
@@ -21,40 +21,36 @@ export default function ConfigInfoRequest() {
   const saving = useAppStore((state) => state.saving);
   const thisSection: ISiteSection | undefined = site?.sections[section.name];
 
-  // setup local state for editing.
-  const [enabled, setEnabled] = useState(false);
-  const [content, setContent] = useState('');
-  const [email, setEmail] = useState([] as Array<string>);
-  const [categories, setCategories] = useState([] as Array<IContactCategory>);
+  const [enabled, setEnabled] = useState(!!thisSection?.enabled);
+  const [content, setContent] = useState(thisSection?.content || '');
+  const [email, setEmail] = useState<string[]>(thisSection?.props?.email || []);
+  const [categories, setCategories] = useState<IContactCategory[]>(thisSection?.props?.categories || []);
 
-  // local component state
   const [newCategory, setNewCategory] = useState('');
   const [newCategoryEmail, setNewCategoryEmail] = useState('');
-  const [invalid, setInvalid] = useState(false);
 
-  // reset to site state
-  const reset = useCallback(() => {
+  const [lastSeenId, setLastSeenId] = useState(site?._id);
+  if (site && site._id !== lastSeenId) {
+    setLastSeenId(site._id);
     setEnabled(!!thisSection?.enabled);
     setContent(thisSection?.content || '');
     setEmail(thisSection?.props?.email || []);
     setCategories(thisSection?.props?.categories || []);
-  }, [thisSection]);
+  }
 
-  // reset to modifed site upon changes from state
-  useEffect(() => {
-    reset();
-  }, [reset, site]);
+  const invalid = enabled && email.length === 0;
 
-  // save the new site info
+  const reset = () => {
+    setEnabled(!!thisSection?.enabled);
+    setContent(thisSection?.content || '');
+    setEmail(thisSection?.props?.email || []);
+    setCategories(thisSection?.props?.categories || []);
+  };
+
   const onSave = async () => {
-    setInvalid(false);
-    if (enabled && !email) {
-      setInvalid(true);
-      return;
-    }
+    if (invalid) return;
 
     if (site) {
-      // create the new section
       const newSection: ISiteSection = {
         enabled,
         content,
@@ -64,7 +60,6 @@ export default function ConfigInfoRequest() {
         }
       };
 
-      // save the new site
       await updateSite({
         ...site,
         sections: {
@@ -74,11 +69,6 @@ export default function ConfigInfoRequest() {
       });
     }
   };
-
-  // validation.  effect on values. Set invalid.
-  useEffect(() => {
-    setInvalid(enabled && email.length == 0);
-  }, [email, enabled]);
 
   /**
    * Add a new category duh

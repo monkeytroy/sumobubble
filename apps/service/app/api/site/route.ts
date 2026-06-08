@@ -8,7 +8,7 @@ import { ErrorCode } from '@/src/lib/api-types';
 // Free-tier limit on sites per customer. Replace with a per-customer
 // limit derived from the subscription tier when subscription handling
 // is wired up (see Customer.subscription).
-const SITE_LIMIT = 1;
+const SITE_LIMIT = 10;
 
 export async function POST(req: NextRequest) {
   const session = await requireSession(req);

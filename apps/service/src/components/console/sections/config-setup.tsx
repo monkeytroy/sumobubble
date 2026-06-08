@@ -1,7 +1,7 @@
 import { useAppStore } from '@/src/store/app-store';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { ISection } from '@/src/components/console/types';
-import { SetStateAction, useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TwitterPicker } from 'react-color';
 import { ConsoleBody } from '@/src/components/console/console-body';
 import { SubscriptionStatus } from '@/src/models/customer.types';
@@ -27,37 +27,33 @@ export default function ConfigSetup(props: IAppProps) {
   const updateSite = useAppStore((state) => state.updateSite);
   const saving = useAppStore((state) => state.saving);
 
-  const [title, setTitle] = useState('');
-  const [themePrimary, setThemePrimary] = useState(DEFAULT_THEME_COLOR);
-  const [button, setButton] = useState('');
+  const [title, setTitle] = useState(site?.title || '');
+  const [themePrimary, setThemePrimary] = useState(site?.theme?.primary || DEFAULT_THEME_COLOR);
+  const [button, setButton] = useState(site?.button || '');
 
-  // local component state
   const [showPickColor, setShowPickColor] = useState(false);
-  const [invalid, setInvalid] = useState(false);
 
-  // reset to site state
-  const reset = useCallback(() => {
-    setButton(site?.button || '');
+  const [lastSeenId, setLastSeenId] = useState(site?._id);
+  if (site && site._id !== lastSeenId) {
+    setLastSeenId(site._id);
+    setTitle(site.title || '');
+    setThemePrimary(site.theme?.primary || DEFAULT_THEME_COLOR);
+    setButton(site.button || '');
+  }
+
+  const invalid = title.length < TITLE_LEN_MIN || title.length > TITLE_LEN_MAX;
+
+  const reset = () => {
     setTitle(site?.title || '');
     setThemePrimary(site?.theme?.primary || DEFAULT_THEME_COLOR);
-  }, [site]);
-
-  // reset to modified site upon changes from state
-  useEffect(() => {
-    reset();
-  }, [reset, site]);
-
-  // save the new site info.
-  const onSave = async () => {
-    if (site) {
-      await updateSite({ ...site, title: title, theme: { primary: themePrimary }, button });
-    }
+    setButton(site?.button || '');
   };
 
-  // validation.  effect on values. Set invalid.
-  useEffect(() => {
-    setInvalid(title.length < TITLE_LEN_MIN || title.length > TITLE_LEN_MAX);
-  }, [title]);
+  const onSave = async () => {
+    if (site) {
+      await updateSite({ ...site, title, theme: { primary: themePrimary }, button });
+    }
+  };
 
   // more component support.
 

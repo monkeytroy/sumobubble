@@ -1,6 +1,6 @@
 import { useAppStore } from '@/src/store/app-store';
 import { ChatBubbleOvalLeftIcon, InformationCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { ISection } from '@/src/components/console/types';
 import { ConsoleBody } from '@/src/components/console/console-body';
 import { SubscriptionStatus } from '@/src/models/customer.types';
@@ -26,34 +26,26 @@ export default function ConfigChatbot(props: IAppProps) {
   const updateSite = useAppStore((state) => state.updateSite);
   const saving = useAppStore((state) => state.saving);
 
-  // setup local state for editing.
-  const [enabled, setEnabled] = useState(false);
   const chatbot = site?.chatbot;
 
-  // local component state
-  const [invalid, setInvalid] = useState(false);
+  const [enabled, setEnabled] = useState(!!chatbot?.enabled);
 
-  // reset to site state
-  const reset = useCallback(() => {
+  const [lastSeenId, setLastSeenId] = useState(site?._id);
+  if (site && site._id !== lastSeenId) {
+    setLastSeenId(site._id);
+    setEnabled(!!site.chatbot?.enabled);
+  }
+
+  const invalid = false;
+
+  const reset = () => {
     setEnabled(!!chatbot?.enabled);
-  }, [chatbot]);
-
-  // reset to modified site upon changes from state
-  useEffect(() => {
-    reset();
-  }, [reset, site]);
+  };
 
   const onSave = async () => {
-    setInvalid(false);
-
     if (site) {
-      // copy configuration
       const newSite = JSON.parse(JSON.stringify(site));
-
-      // replace.
       newSite.chatbot.enabled = enabled;
-
-      // save!
       await updateSite(newSite);
     }
   };

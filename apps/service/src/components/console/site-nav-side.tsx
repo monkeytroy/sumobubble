@@ -3,7 +3,7 @@
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { sections } from '@/src/components/console/sections/sections';
 import { useAppStore } from '@/src/store/app-store';
@@ -21,11 +21,8 @@ export default function SiteNavSide() {
   const customer = useAppStore((state) => state.customer);
   const configuration = useAppStore((state) => state.site);
   const [saving, setSaving] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
 
-  useEffect(() => {
-    setSubscribed(customer?.subscription?.status === SubscriptionStatus.Active);
-  }, [customer]);
+  const subscribed = customer?.subscription?.status === SubscriptionStatus.Active;
 
   const isCurrentSection = (item: ISection) => pathname?.endsWith(`/${item.name}`) ?? false;
 

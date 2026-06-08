@@ -51,7 +51,7 @@ export function AccountSettings(props: IAppProps) {
       </div>
 
       <div className="flex flex-col gap-16">
-        {sites?.length < 1 && <SiteAdd></SiteAdd>}
+        {sites?.length < 10 && <SiteAdd></SiteAdd>}
 
         <SiteList></SiteList>
       </div>

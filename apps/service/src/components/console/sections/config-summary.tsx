@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAppStore } from '@/src/store/app-store';
 import { Editor } from '@tinymce/tinymce-react';
 import { saveFile } from '@/src/services/file';
@@ -21,43 +21,37 @@ export default function ConfigSummary() {
   const updateSite = useAppStore((state) => state.updateSite);
   const saving = useAppStore((state) => state.saving);
 
-  const [enabled, setEnabled] = useState(false);
-  const [content, setContent] = useState('');
-  const [special, setSpecial] = useState('');
+  const [enabled, setEnabled] = useState(!!site?.summary?.enabled);
+  const [content, setContent] = useState(site?.summary?.content || '');
+  const [special, setSpecial] = useState(site?.summary?.special || '');
 
-  // local component state
-  const [newSummary, setNewSummary] = useState('');
-  const [invalid, setInvalid] = useState(false);
+  const [newSummary, setNewSummary] = useState(site?.summary?.content || '');
   const [summaryLoading, setSummaryLoading] = useState(true);
-  // Holds the TinyMCE editor instance once init fires. Typed `unknown`
-  // because nothing currently reads it; narrow at the read site if/when
-  // we start calling editor methods.
   const editorRef = useRef<unknown>(null);
 
-  // reset to site state
-  const reset = useCallback(() => {
+  const [lastSeenId, setLastSeenId] = useState(site?._id);
+  if (site && site._id !== lastSeenId) {
+    setLastSeenId(site._id);
+    setEnabled(!!site.summary?.enabled);
+    setContent(site.summary?.content || '');
+    setNewSummary(site.summary?.content || '');
+    setSpecial(site.summary?.special || '');
+  }
+
+  const invalid = enabled && newSummary.length === 0;
+
+  const reset = () => {
     setEnabled(!!site?.summary?.enabled);
     setContent(site?.summary?.content || '');
     setNewSummary(site?.summary?.content || '');
     setSpecial(site?.summary?.special || '');
-  }, [site]);
+  };
 
-  // reset to modified site upon changes from state
-  useEffect(() => {
-    reset();
-  }, [reset, site]);
-
-  // save the new site info
   const onSave = async () => {
     if (site) {
       await updateSite({ ...site, summary: { enabled, content: newSummary, special } });
     }
   };
-
-  // validation.  effect on values. Set invalid.
-  useEffect(() => {
-    setInvalid(enabled && newSummary.length === 0);
-  }, [enabled, content, newSummary]);
 
   // image upload not currently activated (endpoint not implemented)
   const onImagesUpload = (blobInfo: { blob: () => Blob }) =>
