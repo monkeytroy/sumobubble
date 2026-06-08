@@ -18,31 +18,40 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest, ctx: Ctx) {
+  const reqId = Math.random().toString(36).slice(2, 8);
+  const t0 = Date.now();
   const { siteId } = await ctx.params;
-  log(`api/chat/${siteId}`);
+  const tag = `chat[${reqId}] siteId=${siteId}`;
 
   if (!siteId) {
+    log(`${tag} validation: missing siteId`);
     return withCors(apiError(ErrorCode.ValidationError, 'Missing site id', 400));
   }
 
   const aiApiKey = process.env.GEMINI_API_KEY;
   if (!aiApiKey) {
+    log(`${tag} config: GEMINI_API_KEY not set`);
     return withCors(apiError(ErrorCode.InternalError, 'AI is not configured', 500));
   }
 
+  let step = 'init';
   try {
+    step = 'parse-body';
     const body = await req.json().catch(() => null);
     const query = body?.query;
+    log(`${tag} query=${typeof query === 'string' ? query.slice(0, 80) : '(none)'}`);
 
+    step = 'connect-mongo';
+    const tMongo = Date.now();
     await connectMongo();
 
-    // Use the raw uploaded source docs directly. Gemini 2.5-flash has a
-    // large enough context window to take them verbatim; the previous
-    // approach summarized them first into a single "master" doc, which
-    // compressed out the specifics that user questions actually depend on.
+    step = 'fetch-sources';
+    const tSources = Date.now();
     const sources = await AskSource.find({ siteId, isMaster: false }, { contents: 1, origFilename: 1 });
+    log(`${tag} sources=${sources.length} mongoMs=${tSources - tMongo} fetchMs=${Date.now() - tSources}`);
 
     if (sources.length === 0) {
+      log(`${tag} no-corpus totalMs=${Date.now() - t0}`);
       return withCors(
         apiOk({ reply: "Sorry, I don't have any information to answer your questions at the moment." })
       );
@@ -51,7 +60,10 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     const corpus = sources
       .map((s) => `----- ${s.origFilename || 'document'} -----\n${s.contents}`)
       .join('\n\n');
+    log(`${tag} corpus chars=${corpus.length}`);
 
+    step = 'gemini-call';
+    const tGemini = Date.now();
     const genAI = new GoogleGenerativeAI(aiApiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
@@ -81,15 +93,17 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
     const result = await model.generateContent([prompt, corpus, 'User question:', query]);
     const text = result.response.text();
+    log(`${tag} geminiMs=${Date.now() - tGemini} replyChars=${text?.length ?? 0} totalMs=${Date.now() - t0}`);
 
     if (!text) {
-      log(`Chat returned empty text siteId: ${siteId}`);
+      log(`${tag} ai-empty-response`);
       return withCors(apiError('ai_empty_response', 'AI returned no response', 502));
     }
 
     return withCors(apiOk({ reply: text }));
   } catch (err) {
-    log(`api/chat/${siteId} error: ${(<Error>err)?.message}`);
-    return withCors(apiError(ErrorCode.InternalError, (<Error>err)?.message, 500));
+    const e = err as Error;
+    log(`${tag} FAILED at step=${step} totalMs=${Date.now() - t0} msg="${e?.message}"`, e?.stack);
+    return withCors(apiError(ErrorCode.InternalError, e?.message || 'Chat request failed', 500));
   }
 }
