@@ -1,13 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose, { type Mongoose } from 'mongoose';
 import { log } from '@/src/lib/log';
 
 const MONGO_CONNECT = process.env.MONGO_CONNECT;
 
-let mongoConnected = false;
-
-// Strip credentials from a Mongo URI so we can log it safely. Returns
-// just protocol://host/db. Falls back to '<unparseable uri>' if URL
-// parsing fails for any reason.
 const safeUri = (uri: string): string => {
   try {
     const url = new URL(uri);
@@ -17,28 +12,45 @@ const safeUri = (uri: string): string => {
   }
 };
 
-const connectMongo = async () => {
-  const ready = mongoose?.connection?.readyState;
-  mongoConnected = ready == 1 || ready == 2;
+type Cache = { conn: Mongoose | null; promise: Promise<Mongoose> | null };
 
-  log(`connectMongo:: currently connected ${mongoConnected} ` +
-      `readyState ${ready} connection count ${mongoose?.connections?.length}`);
+const globalForMongoose = globalThis as unknown as { __mongooseCache?: Cache };
+const cache: Cache = globalForMongoose.__mongooseCache ?? { conn: null, promise: null };
+globalForMongoose.__mongooseCache = cache;
 
-  if (MONGO_CONNECT && !mongoConnected) {
+const isAlive = (conn: Mongoose | null) => conn?.connection?.readyState === 1;
+
+const connectMongo = async (): Promise<Mongoose> => {
+  if (!MONGO_CONNECT) throw new Error('MONGO_CONNECT is not set');
+
+  if (cache.conn && isAlive(cache.conn)) return cache.conn;
+
+  if (!cache.promise) {
     log(`Connecting to ${safeUri(MONGO_CONNECT)}`);
-    const res = await mongoose.connect(MONGO_CONNECT);
-    if (res) {
-      mongoConnected = true;
-      log(`Connected`, res.connection.readyState);
-    } else {
-      mongoConnected = false;
-      log(`Failed to connect to ${safeUri(MONGO_CONNECT)}`);
-    }
+    cache.promise = mongoose
+      .connect(MONGO_CONNECT, {
+        bufferCommands: false,
+        serverSelectionTimeoutMS: 8000
+      })
+      .then((m) => {
+        log(`Connected readyState=${m.connection.readyState}`);
+        return m;
+      });
+  }
+
+  try {
+    cache.conn = await cache.promise;
+    return cache.conn;
+  } catch (err) {
+    cache.promise = null;
+    throw err;
   }
 };
 
 export const disconnectMongo = async () => {
   mongoose.disconnect();
+  cache.conn = null;
+  cache.promise = null;
 };
 
 export default connectMongo;
