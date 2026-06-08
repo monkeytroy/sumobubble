@@ -1,0 +1,41 @@
+name: Publish wc bundle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/wc/**'
+      - '.github/workflows/publish-wc.yml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile --filter sumobubble-app...
+
+      - run: pnpm --filter sumobubble-app build
+
+      - name: Upload sumobubble.js to Spaces
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ vars.SPACES_REGION }}
+        run: |
+          aws s3 cp apps/wc/dist/sumobubble.js \
+            s3://${{ vars.SPACES_BUCKET }}/wc/sumobubble.js \
+            --endpoint-url ${{ vars.SPACES_ENDPOINT }} \
+            --acl public-read \
+            --content-type "application/javascript; charset=utf-8" \
+            --cache-control "public, max-age=300"
