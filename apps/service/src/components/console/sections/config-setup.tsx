@@ -8,6 +8,7 @@ import { SubscriptionStatus } from '@/src/models/customer.types';
 import { IAppProps } from '@/src/services/types';
 
 import ConsolePricing from '@/src/components/console/console-pricing';
+import CopyButton from '@/src/components/console/copy-button';
 import { COLORS } from '@/src/constants/colors';
 import { DEFAULT_THEME_COLOR, TITLE_LEN_MIN, TITLE_LEN_MAX } from '@/src/constants/site-deafults';
 
@@ -173,13 +174,17 @@ export default function ConfigSetup(props: IAppProps) {
               <div className="flex gap-4 items-baseline">
                 <span className="text-xl font-semibold text-gray-900">Deploy Using Code</span>
               </div>
-              <div className="block text-sm font-medium leading-6 text-gray-900">
+              <div className="block text-sm font-medium leading-6 text-gray-900 flex items-center gap-2">
                 Copy and paste this into your webpage!
+                <CopyButton
+                  label="Copy embed snippet"
+                  value={`<script type="module" src="${process.env.NEXT_PUBLIC_SCRIPT_URL}" id="sumobubble-scriptastic" async></script>\n<sumobubble-wc site="${site?._id}"></sumobubble-wc>`}
+                />
               </div>
               <div className="bg-gray-300 rounded-lg shadow-md p-6 select-text break-all whitespace-pre-wrap">
                 <code>
                   {`
-<script 
+<script
   type="module"
   src="${process.env.NEXT_PUBLIC_SCRIPT_URL}"
   id="sumobubble-scriptastic"
@@ -196,18 +201,29 @@ export default function ConfigSetup(props: IAppProps) {
               </div>
 
               <div className="block text-sm font-medium leading-6 text-gray-900">
-                <ol>
+                <ol className="flex flex-col gap-2">
                   <li>1. Create a Custom Element on your page. Choose Source will be selected.</li>
                   <li>
                     2. In the Element Attributes choose Server Url and enter:
-                    <div className="ml-4">
+                    <div className="ml-4 flex items-center gap-2 select-text break-all">
                       <b>{process.env.NEXT_PUBLIC_SCRIPT_URL}</b>
+                      <CopyButton label="Copy server URL" value={process.env.NEXT_PUBLIC_SCRIPT_URL || ''} />
                     </div>
                   </li>
-                  <li>3. Scroll down and enter the Tag name as: sumobubble-wc</li>
+                  <li>
+                    3. Scroll down and enter the Tag name as:
+                    <span className="inline-flex items-center gap-2 ml-2 select-text">
+                      <b>sumobubble-wc</b>
+                      <CopyButton label="Copy tag name" value="sumobubble-wc" />
+                    </span>
+                  </li>
                   <li>4. Select the element option Set Attributes, then add a new attribute.</li>
                   <li>
-                    5. Make the Attribute Name: <b>site</b> and the Value: <b>{site?._id}</b>
+                    5. Make the Attribute Name: <b>site</b> and the Value:
+                    <span className="inline-flex items-center gap-2 ml-2 select-text break-all">
+                      <b>{site?._id}</b>
+                      <CopyButton label="Copy site id" value={site?._id || ''} />
+                    </span>
                   </li>
                 </ol>
               </div>
