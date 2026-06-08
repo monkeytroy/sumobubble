@@ -158,12 +158,15 @@ export default function ConfigChatbot(props: IAppProps) {
                     name="uploadDoc"
                     id="uploadDoc"
                     aria-invalid={invalid}
+                    accept=".txt,.md,.markdown,.csv,.json,.html,.htm,.xml,.yaml,.yml,.log,text/*,application/json,application/xml"
                     onChange={(e) => processFile(e.target.files)}
-                    className="w-full text-gray-400 font-semibold text-sm bg-white border 
-                    file:cursor-pointer cursor-pointer file:border-0 file:py-3 file:px-4 
+                    className="w-full text-gray-400 font-semibold text-sm bg-white border
+                    file:cursor-pointer cursor-pointer file:border-0 file:py-3 file:px-4
                     file:mr-4 file:bg-gray-100 file:hover:bg-gray-200 file:text-gray-500 rounded"
                   />
-                  <p className="text-xs text-gray-400 mt-2">TXT only for now.</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Plain text formats: txt, md, csv, json, html, xml, yaml, log.
+                  </p>
                 </div>
               </div>
             </div>

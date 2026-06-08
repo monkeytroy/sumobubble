@@ -1,3 +1,5 @@
+'use client';
+
 import SiteList from '@/src/components/console/site-list';
 import ConsolePricing from '@/src/components/console/console-pricing';
 import SiteAdd from '@/src/components/console/site-add';

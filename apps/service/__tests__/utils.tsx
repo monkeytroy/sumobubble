@@ -1,18 +1,22 @@
-import LayoutPlain from '@/layouts/layout-plain';
 import { SessionProvider } from 'next-auth/react';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { Session } from 'next-auth';
-import { IAppProps } from '@/src/services/types';
 
 interface PageOptions {
   session?: Session;
 }
 
+const TestShell = ({ children }: { children: ReactNode }) => (
+  <div className="flex flex-col min-h-screen mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <main>{children}</main>
+  </div>
+);
+
 export const customRender = (ui: ReactElement, { session }: PageOptions) => {
   return render(
     <SessionProvider session={session}>
-      <LayoutPlain>{ui}</LayoutPlain>
+      <TestShell>{ui}</TestShell>
     </SessionProvider>
   );
 };

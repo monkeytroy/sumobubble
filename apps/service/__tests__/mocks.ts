@@ -1,4 +1,4 @@
-import { Role } from '@/middleware';
+import { Role } from '@/proxy';
 import { Membership, SubscriptionStatus } from '@/src/models/customer';
 
 export const mockSession = {

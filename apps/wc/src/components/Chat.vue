@@ -45,15 +45,27 @@
         </svg>
       </div>
 
-      <input type="text"
-        v-model="chatValue"
-        ref="chatRef"
-        @keyup.enter="onChatEnter"
-        class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm 
-          ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 
-          focus:ring-2 focus:ring-inset focus:ring-blue-600 
-          sm:text-sm sm:leading-6"
-        placeholder="Ask a question..."/>
+      <div class="flex gap-2">
+        <input type="text"
+          v-model="chatValue"
+          ref="chatRef"
+          @keyup.enter="onSubmit"
+          class="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm
+            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400
+            focus:ring-2 focus:ring-inset focus:ring-blue-600
+            sm:text-sm sm:leading-6"
+          placeholder="Ask a question..."/>
+        <button type="button"
+          @click="onSubmit"
+          :disabled="!canSend"
+          aria-label="Send message"
+          class="shrink-0 rounded-md bg-skin-primary px-3 py-1.5 text-white shadow-sm
+            hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed
+            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+            focus-visible:outline-blue-600">
+          <PaperAirplaneIcon class="h-5 w-5" />
+        </button>
+      </div>
     </div>
     
   </div>
@@ -62,13 +74,22 @@
 <script lang="ts" setup>
 
   import { IChat, sendChat } from '@/services/api';
-  import { Ref, nextTick, ref } from 'vue';
-  
+  import { Ref, computed, nextTick, onMounted, ref } from 'vue';
+  import { PaperAirplaneIcon } from '@heroicons/vue/24/outline';
+
+  const MIN_CHARS = 2;
+
   const props = defineProps<{ config: ISite }>();
   const chatRef = ref<HTMLInputElement | null>(null);
   const chatValue = ref('');
   const thinking = ref(false);
   const scrollToTargetRef = ref<HTMLElement>();
+
+  const canSend = computed(() => chatValue.value.trim().length >= MIN_CHARS && !thinking.value);
+
+  // Chat is v-if'd on the Ask tab, so onMounted fires each time the user
+  // switches to it — focus the input so they can start typing immediately.
+  onMounted(() => nextTick(() => chatRef.value?.focus()));
 
   const chats: Ref<Array<IChat>> = ref([
     {
@@ -77,21 +98,15 @@
     }
   ]);
 
-  const onChatEnter = async () => {
-    
-    const v = chatValue.value;
+  const onSubmit = async () => {
+    if (!canSend.value) return;
+
+    const v = chatValue.value.trim();
     chatValue.value = '';
 
-    if (v) {
-      chats.value.push({
-        user: 'User',
-        text: v
-      });
-
-      nextTick(scrollTo);
-
-      sendQuery(v);
-    }
+    chats.value.push({ user: 'User', text: v });
+    nextTick(scrollTo);
+    sendQuery(v);
   }
 
   const sendQuery = async (query: string) => {
