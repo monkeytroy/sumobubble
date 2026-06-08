@@ -16,6 +16,10 @@ if (!fs.existsSync(src)) {
   process.exit(0);
 }
 
+// Resolve the symlink chain — pnpm's node_modules/tinymce is a symlink
+// into .pnpm/, and fs.cpSync trips on the realpath self-detection.
+const realSrc = fs.realpathSync(src);
+
 fs.rmSync(dest, { recursive: true, force: true });
-fs.cpSync(src, dest, { recursive: true });
-console.log(`postinstall: copied ${src} -> ${dest}`);
+fs.cpSync(realSrc, dest, { recursive: true });
+console.log(`postinstall: copied ${realSrc} -> ${dest}`);
